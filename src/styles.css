@@ -357,6 +357,12 @@ textarea { resize: vertical; }
   background: #e7efe9;
 }
 
+.card .thumb {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+}
+
 .gallery-main {
   width: 100%;
   height: auto;

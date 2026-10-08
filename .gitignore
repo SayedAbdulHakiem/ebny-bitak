@@ -42,3 +42,9 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Local Firebase config and CLI logs. Do not commit these.
+src/app/core/firebase-config.local.ts
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
