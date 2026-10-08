@@ -289,6 +289,10 @@ textarea { resize: vertical; }
 
 .card:hover { transform: translateY(-3px); }
 
+.seller-house:hover { transform: none; }
+
+.card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 1rem 1rem; }
+
 .thumb, .gallery-main { aspect-ratio: 4 / 3; width: 100%; object-fit: cover; background: #e7efe9; }
 
 .thumb-empty { aspect-ratio: 4 / 3; }
@@ -296,6 +300,8 @@ textarea { resize: vertical; }
 .card-body, .detail-copy { display: grid; gap: 0.45rem; padding: 0.95rem 1rem 1.1rem; }
 
 .card h2, .detail-copy h1 { margin: 0; font-size: 1.25rem; }
+
+.price { margin: 0; font-weight: 800; font-size: 1.15rem; color: var(--pine-dark); }
 
 .description, .lead { margin: 0; color: var(--muted); line-height: 1.7; }
 
@@ -330,6 +336,25 @@ textarea { resize: vertical; }
 .detail { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; margin-bottom: 1rem; }
 
 .gallery-main { border-radius: 18px; }
+
+.video-frame {
+  position: relative;
+  width: 100%;
+  max-width: 46rem;
+  aspect-ratio: 16 / 9;
+  margin-top: 0.7rem;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #111;
+}
+
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
 
 .gallery-thumbs { display: flex; gap: 0.45rem; margin-top: 0.55rem; }
 

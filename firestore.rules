@@ -53,7 +53,12 @@ service cloud.firestore {
         && request.resource.data.description.size() >= 10
         && request.resource.data.description.size() <= 600
         && request.resource.data.photos is list
-        && request.resource.data.photos.size() <= 3
+        && request.resource.data.photos.size() <= 5
+        && request.resource.data.youtubeUrl is string
+        && request.resource.data.youtubeUrl.size() <= 200
+        && request.resource.data.price is int
+        && request.resource.data.price >= 1
+        && request.resource.data.price <= 999999999
         && request.resource.data.viewCount == 0
         && request.resource.data.phoneRevealCount == 0
         && request.resource.data.locationKey == houseId
@@ -68,6 +73,35 @@ service cloud.firestore {
     function phoneIncrement() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phoneRevealCount'])
         && request.resource.data.phoneRevealCount == resource.data.phoneRevealCount + 1;
+    }
+
+    function sellerListingUpdate() {
+      return isSeller()
+        && resource.data.sellerId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'photos', 'youtubeUrl', 'price'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 10
+        && request.resource.data.description.size() <= 600
+        && request.resource.data.photos is list
+        && request.resource.data.photos.size() <= 5
+        && (
+          !request.resource.data.keys().hasAny(['youtubeUrl'])
+          || (
+            request.resource.data.youtubeUrl is string
+            && request.resource.data.youtubeUrl.size() <= 200
+          )
+        )
+        && (
+          !request.resource.data.keys().hasAny(['price'])
+          || (
+            request.resource.data.price is int
+            && request.resource.data.price >= 1
+            && request.resource.data.price <= 999999999
+          )
+        );
     }
 
     function validDailyCreate() {
@@ -112,8 +146,19 @@ service cloud.firestore {
     match /houses/{houseId} {
       allow read: if true;
       allow create: if validHouseCreate(houseId);
-      allow update: if isAdmin() || viewIncrement() || phoneIncrement();
+      allow update: if isAdmin() || viewIncrement() || phoneIncrement() || sellerListingUpdate();
       allow delete: if isAdmin();
+    }
+
+    match /housePhotos/{photoId} {
+      allow read: if true;
+      allow create, update: if isSeller()
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.contentType == 'image/jpeg'
+        && request.resource.data.data is string
+        && request.resource.data.data.size() > 0
+        && request.resource.data.data.size() < 700000;
+      allow delete: if isAdmin() || (isSeller() && resource.data.sellerId == request.auth.uid);
     }
 
     match /houseStats/{houseId}/daily/{day} {

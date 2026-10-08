@@ -1,0 +1,83 @@
+@if (loading()) {
+  <p class="muted">جارٍ فتح المنزل…</p>
+} @else if (error() && !house()) {
+  <p class="alert" role="alert">{{ error() }}</p>
+} @else if (missing()) {
+  <section class="empty-panel">
+    <h1>لا يمكن تعديل هذا المنزل</h1>
+    <p>الإعلان غير موجود، أو أنه منشور باسم بائع آخر.</p>
+    <a class="button" routerLink="/seller/houses">العودة إلى منازلي</a>
+  </section>
+} @else if (house(); as current) {
+  <section class="page-intro">
+    <p class="eyebrow">حساب البائع</p>
+    <h1>تعديل المنزل</h1>
+    <p>المنطقة {{ current.region }} · القطاع {{ current.sector }} · منزل {{ current.houseNumber }}. الموقع ثابت، ويمكن تعديل السعر والوصف والصور ورابط يوتيوب.</p>
+  </section>
+
+  <form class="panel form-grid" (submit)="$event.preventDefault(); save()">
+    <label class="span-2">
+      الوصف المختصر
+      <input [value]="name()" (input)="setName($event)" maxlength="80" required />
+    </label>
+    <label class="span-2">
+      الوصف
+      <textarea [value]="description()" (input)="setDescription($event)" maxlength="600" rows="5" required></textarea>
+    </label>
+    <label class="span-2">
+      السعر بالجنيه
+      <input [value]="price()" (input)="setPrice($event)" inputmode="numeric" required placeholder="مثال: 2,700,000" dir="ltr" />
+    </label>
+    <label class="span-2">
+      رابط يوتيوب
+      <input
+        [value]="youtubeUrl()"
+        (input)="setYoutubeUrl($event)"
+        maxlength="200"
+        inputmode="url"
+        placeholder="https://www.youtube.com/watch?v=xxxxxxxxxxx"
+        dir="ltr"
+      />
+    </label>
+
+    <div class="span-2">
+      <label class="file-label">
+        صور المنزل ({{ maxPhotos }} كحد أقصى)
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple (change)="addPhotos($event)" />
+      </label>
+      @if (kept().length || added().length) {
+        <div class="photo-drafts">
+          @for (photo of kept(); track photo.ref) {
+            <figure>
+              @if (photo.preview) {
+                <img [src]="photo.preview" alt="" />
+              } @else {
+                <div class="thumb thumb-empty" aria-hidden="true"></div>
+              }
+              <button type="button" (click)="removeKept($index)">حذف</button>
+            </figure>
+          }
+          @for (photo of added(); track photo.preview) {
+            <figure>
+              <img [src]="photo.preview" alt="" />
+              <button type="button" (click)="removeAdded($index)">حذف</button>
+            </figure>
+          }
+        </div>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="alert span-2" role="alert">{{ error() }}</p>
+    }
+    @if (saved()) {
+      <p class="success span-2" role="status">تم حفظ التعديل.</p>
+    }
+
+    <div class="actions span-2">
+      <button class="button" type="submit" [disabled]="busy()">{{ busy() ? 'جارٍ الحفظ…' : 'حفظ التعديل' }}</button>
+      <a class="button secondary" [routerLink]="['/houses', current.id]">عرض الإعلان</a>
+      <a class="button secondary" routerLink="/seller/houses">منازلي</a>
+    </div>
+  </form>
+}

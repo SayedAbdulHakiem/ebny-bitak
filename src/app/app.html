@@ -23,10 +23,11 @@
         <a routerLink="/admin/sellers" routerLinkActive="active" (click)="closeMenu()">البائعون</a>
       }
       @if (auth.profile()?.role === 'seller') {
+        <a routerLink="/seller/houses" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">منازلي</a>
         <a routerLink="/seller/houses/new" routerLinkActive="active" (click)="closeMenu()">إضافة منزل</a>
       }
       @if (auth.profile(); as profile) {
-        <span class="who">{{ profile.displayName }} · {{ profile.role === 'admin' ? 'مدير' : 'بائع' }}</span>
+        <span class="who">{{ profile.displayName }} · {{ profile.role === 'admin' ? 'مدير' : sellerTypeLabel(profile.sellerType) }}</span>
         <button type="button" class="button secondary" (click)="logout()">خروج</button>
       } @else {
         <a class="button" routerLink="/login" (click)="closeMenu()">دخول</a>
@@ -48,10 +49,13 @@
     </div>
     <div class="footer-links">
       <a routerLink="/">بحث المنازل</a>
+      @if (auth.profile()?.role === 'seller') {
+        <a routerLink="/seller/houses">منازلي</a>
+      }
       @if (auth.profile()?.role === 'admin') {
         <a routerLink="/stats">إحصائيات النقرات</a>
       }
-      <a routerLink="/login">دخول البائع أو المدير</a>
+      <a routerLink="/login">تسجيل الدخول</a>
     </div>
   </footer>
 </div>

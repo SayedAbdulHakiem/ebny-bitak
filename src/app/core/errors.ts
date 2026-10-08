@@ -1,7 +1,8 @@
-import { HouseAlreadyExistsError } from './models';
+import { HouseAlreadyExistsError, HousePhotosUploadError } from './models';
 
 export function errorMessage(error: unknown): string {
   if (error instanceof HouseAlreadyExistsError) return 'هذا المنزل مسجّل مسبقاً.';
+  if (error instanceof HousePhotosUploadError) return error.message;
   if (error instanceof Error && /[\u0600-\u06FF]/.test(error.message)) return error.message;
 
   const code = firebaseCode(error);

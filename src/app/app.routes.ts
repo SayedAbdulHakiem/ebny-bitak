@@ -25,9 +25,19 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin-sellers/admin-sellers').then((module) => module.AdminSellersPage),
   },
   {
+    path: 'seller/houses',
+    canActivate: [roleGuard(['seller'])],
+    loadComponent: () => import('./pages/seller-houses/seller-houses').then((module) => module.SellerHousesPage),
+  },
+  {
     path: 'seller/houses/new',
     canActivate: [roleGuard(['seller'])],
     loadComponent: () => import('./pages/add-house/add-house').then((module) => module.AddHousePage),
+  },
+  {
+    path: 'seller/houses/:id/edit',
+    canActivate: [roleGuard(['seller'])],
+    loadComponent: () => import('./pages/edit-house/edit-house').then((module) => module.EditHousePage),
   },
   { path: '**', redirectTo: '' },
 ];

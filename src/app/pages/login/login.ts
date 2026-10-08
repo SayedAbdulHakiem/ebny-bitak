@@ -22,7 +22,7 @@ export class LoginPage {
 
   constructor() {
     this.seo.set({
-      title: 'دخول البائع أو المدير | ابني بيتك',
+      title: 'تسجيل الدخول | ابني بيتك',
       description: 'دخول حسابات البائعين والمدير في منصة ابني بيتك. صلاحية المدير تُعيَّن من قاعدة البيانات.',
       path: '/login',
     });
@@ -50,7 +50,7 @@ export class LoginPage {
         await this.router.navigateByUrl(returnUrl);
         return;
       }
-      await this.router.navigateByUrl(profile.role === 'admin' ? '/admin/sellers' : '/seller/houses/new');
+      await this.router.navigateByUrl(profile.role === 'admin' ? '/admin/sellers' : '/seller/houses');
     } catch (error) {
       this.error.set(errorMessage(error));
     } finally {

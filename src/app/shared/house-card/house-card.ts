@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { sellerTypeLabel, House } from '../../core/models';
+import { formatPrice } from '../../core/price';
 import { Stars } from '../stars/stars';
 
 @Component({
@@ -11,4 +12,5 @@ import { Stars } from '../stars/stars';
 export class HouseCard {
   readonly house = input.required<House>();
   protected readonly sellerTypeLabel = sellerTypeLabel;
+  protected readonly formatPrice = formatPrice;
 }

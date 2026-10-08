@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth.service';
 import { FirebaseService } from './core/firebase.service';
+import { sellerTypeLabel } from './core/models';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ export class App {
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
   protected readonly firebase = inject(FirebaseService);
+  protected readonly sellerTypeLabel = sellerTypeLabel;
   protected readonly menuOpen = signal(false);
 
   protected toggleMenu(): void {

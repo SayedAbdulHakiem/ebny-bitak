@@ -43,3 +43,7 @@ export function sellerDayDocument(db: Firestore, sellerId: string, date: string)
 export function housePhotoPath(sellerId: string, houseId: string, fileName: string): string {
   return `${DATA_ROOT}/houses/${sellerId}/${houseId}/${fileName}`;
 }
+
+export function houseImageDocument(db: Firestore, photoId: string): DocumentReference {
+  return doc(db, DATA_ROOT, ROOT_DOC, 'housePhotos', photoId);
+}

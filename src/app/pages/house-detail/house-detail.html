@@ -33,6 +33,14 @@
     <div class="detail-copy">
       <p class="meta">المنطقة {{ current.region }} · القطاع {{ current.sector }} · منزل {{ current.houseNumber }}</p>
       <h1>{{ current.name }}</h1>
+      @if (current.price > 0) {
+        <p class="price">{{ formatPrice(current.price) }}</p>
+      }
+      @if (isOwner(current)) {
+        <p class="actions">
+          <a class="button secondary" [routerLink]="['/seller/houses', current.id, 'edit']">تعديل الإعلان</a>
+        </p>
+      }
       <p class="lead">{{ current.description }}</p>
       <div class="seller-row">
         <span [class]="'tag tag-' + current.sellerType">{{ sellerTypeLabel(current.sellerType) }}</span>
@@ -42,6 +50,21 @@
       <p class="muted">نُشر {{ formatArabicDate(current.createdAt) }} · {{ current.viewCount }} زيارة منذ النشر</p>
     </div>
   </article>
+
+  @if (youtubeId(current.youtubeUrl); as videoId) {
+    <section class="panel">
+      <h2>فيديو المنزل</h2>
+      <div class="video-frame">
+        <iframe
+          [src]="youtubeEmbed(videoId)"
+          title="فيديو المنزل على يوتيوب"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <p><a [href]="current.youtubeUrl" target="_blank" rel="noopener noreferrer">مشاهدة على يوتيوب</a></p>
+    </section>
+  }
 
   <section class="panel">
     <h2>التواصل مع البائع</h2>
@@ -56,29 +79,31 @@
     }
   </section>
 
-  <section class="panel">
-    <h2>النقرات حسب التاريخ</h2>
-    <p class="muted">التاريخ حسب توقيت جهازك. تشمل الأرقام نقرات فتح المنزل ونقرات إظهار الرقم.</p>
-    <app-date-range [(from)]="from" [(to)]="to" (apply)="applyStats()" />
-    <div class="stat-grid">
-      <article>
-        <span>نقرات هذا المنزل</span>
-        <strong>{{ houseStats().views }}</strong>
-      </article>
-      <article>
-        <span>إجمالي نقرات منازل البائع</span>
-        <strong>{{ sellerStats().views }}</strong>
-      </article>
-      <article>
-        <span>إظهار رقم هذا المنزل</span>
-        <strong>{{ houseStats().phoneReveals }}</strong>
-      </article>
-      <article>
-        <span>إظهار الرقم لكل منازل البائع</span>
-        <strong>{{ sellerStats().phoneReveals }}</strong>
-      </article>
-    </div>
-  </section>
+  @if (isAdmin()) {
+    <section class="panel">
+      <h2>النقرات حسب التاريخ</h2>
+      <p class="muted">التاريخ حسب توقيت جهازك. تشمل الأرقام نقرات فتح المنزل ونقرات إظهار الرقم.</p>
+      <app-date-range [(from)]="from" [(to)]="to" (apply)="applyStats()" />
+      <div class="stat-grid">
+        <article>
+          <span>نقرات هذا المنزل</span>
+          <strong>{{ houseStats().views }}</strong>
+        </article>
+        <article>
+          <span>إجمالي نقرات منازل البائع</span>
+          <strong>{{ sellerStats().views }}</strong>
+        </article>
+        <article>
+          <span>إظهار رقم هذا المنزل</span>
+          <strong>{{ houseStats().phoneReveals }}</strong>
+        </article>
+        <article>
+          <span>إظهار الرقم لكل منازل البائع</span>
+          <strong>{{ sellerStats().phoneReveals }}</strong>
+        </article>
+      </div>
+    </section>
+  }
 
   <section class="results-section">
     <div class="section-head">

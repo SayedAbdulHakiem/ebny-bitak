@@ -1,9 +1,11 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorMessage } from '../../core/errors';
-import { assertPhoto, HouseService } from '../../core/house.service';
+import { groupPriceInput } from '../../core/price';
+import { assertPhoto, HouseService, MAX_PHOTOS } from '../../core/house.service';
 import { buildLocationKey, isRegion, isSector, REGIONS, SECTORS } from '../../core/location';
-import { House, HouseAlreadyExistsError, sellerTypeLabel } from '../../core/models';
+import { House, HouseAlreadyExistsError, HousePhotosUploadError, sellerTypeLabel } from '../../core/models';
+import { AuthService } from '../../core/auth.service';
 import { SeoService } from '../../core/seo.service';
 import { Stars } from '../../shared/stars/stars';
 
@@ -14,9 +16,11 @@ import { Stars } from '../../shared/stars/stars';
 })
 export class AddHousePage {
   private readonly houses = inject(HouseService);
+  private readonly auth = inject(AuthService);
   private readonly seo = inject(SeoService);
   private timer: ReturnType<typeof setTimeout> | null = null;
 
+  protected readonly maxPhotos = MAX_PHOTOS;
   protected readonly regions = REGIONS;
   protected readonly sectors = SECTORS;
   protected readonly sellerTypeLabel = sellerTypeLabel;
@@ -25,17 +29,20 @@ export class AddHousePage {
   protected readonly region = signal('1');
   protected readonly sector = signal<string>(SECTORS[0]);
   protected readonly houseNumber = signal('');
+  protected readonly price = signal('');
+  protected readonly youtubeUrl = signal('');
   protected readonly photos = signal<{ file: File; preview: string }[]>([]);
   protected readonly existing = signal<House | null>(null);
   protected readonly checking = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal('');
   protected readonly successId = signal('');
+  protected readonly successText = signal('تم نشر المنزل.');
 
   constructor() {
     this.seo.set({
       title: 'إضافة منزل | ابني بيتك',
-      description: 'يضيف البائع منزلاً جديداً في ابني بيتك بعد التحقق من المنطقة والقطاع ورقم المنزل، بحد أقصى 3 صور.',
+      description: 'يضيف البائع منزلاً جديداً في ابني بيتك بعد التحقق من المنطقة والقطاع ورقم المنزل، بحد أقصى 5 صور.',
       path: '/seller/houses/new',
     });
     inject(DestroyRef).onDestroy(() => {
@@ -67,12 +74,24 @@ export class AddHousePage {
     this.scheduleCheck();
   }
 
+  protected setPrice(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const grouped = groupPriceInput(input.value, input.selectionStart ?? input.value.length);
+    this.price.set(grouped.text);
+    input.value = grouped.text;
+    input.setSelectionRange(grouped.caret, grouped.caret);
+  }
+
+  protected setYoutubeUrl(event: Event): void {
+    this.youtubeUrl.set((event.target as HTMLInputElement).value);
+  }
+
   protected addPhotos(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     input.value = '';
-    if (this.photos().length + files.length > 3) {
-      this.error.set('الحد الأقصى 3 صور لكل منزل.');
+    if (this.photos().length + files.length > MAX_PHOTOS) {
+      this.error.set(`الحد الأقصى ${MAX_PHOTOS} صور لكل منزل.`);
       return;
     }
     try {
@@ -97,6 +116,40 @@ export class AddHousePage {
     });
   }
 
+  protected canEdit(house: House): boolean {
+    return this.auth.profile()?.uid === house.sellerId;
+  }
+
+  protected canUploadPhotos(house: House): boolean {
+    return this.auth.profile()?.uid === house.sellerId && house.photos.length === 0;
+  }
+
+  protected async uploadExistingPhotos(): Promise<void> {
+    const current = this.existing();
+    if (!current || !this.canUploadPhotos(current)) return;
+    if (this.photos().length === 0) {
+      this.error.set('اختر صورة واحدة على الأقل.');
+      return;
+    }
+    this.error.set('');
+    this.successId.set('');
+    this.busy.set(true);
+    try {
+      const updated = await this.houses.addPhotos(
+        current.id,
+        this.photos().map((photo) => photo.file),
+      );
+      this.successText.set('تم رفع الصور.');
+      this.successId.set(updated.id);
+      this.existing.set(updated);
+      this.clearDraft();
+    } catch (error) {
+      this.error.set(errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   protected async submit(): Promise<void> {
     this.error.set('');
     this.successId.set('');
@@ -104,7 +157,7 @@ export class AddHousePage {
     const description = this.description().trim();
     const region = Number(this.region());
     if (name.length < 3 || name.length > 80) {
-      this.error.set('اسم المنزل يجب أن يكون من 3 إلى 80 حرفاً.');
+      this.error.set('الوصف المختصر يجب أن يكون من 3 إلى 80 حرفاً.');
       return;
     }
     if (description.length < 10 || description.length > 600) {
@@ -127,20 +180,33 @@ export class AddHousePage {
         region,
         sector: this.sector(),
         houseNumber: this.houseNumber(),
+        price: this.price(),
+        youtubeUrl: this.youtubeUrl(),
         photos: this.photos().map((photo) => photo.file),
       });
+      this.successText.set('تم نشر المنزل.');
       this.successId.set(created.id);
-      this.photos().forEach((photo) => URL.revokeObjectURL(photo.preview));
-      this.photos.set([]);
-      this.name.set('');
-      this.description.set('');
-      this.houseNumber.set('');
+      this.clearDraft();
     } catch (error) {
       if (error instanceof HouseAlreadyExistsError) this.existing.set(error.house);
+      if (error instanceof HousePhotosUploadError) {
+        this.successId.set(error.house.id);
+        this.clearDraft();
+      }
       this.error.set(errorMessage(error));
     } finally {
       this.busy.set(false);
     }
+  }
+
+  private clearDraft(): void {
+    this.photos().forEach((photo) => URL.revokeObjectURL(photo.preview));
+    this.photos.set([]);
+    this.name.set('');
+    this.description.set('');
+    this.houseNumber.set('');
+    this.price.set('');
+    this.youtubeUrl.set('');
   }
 
   private scheduleCheck(): void {

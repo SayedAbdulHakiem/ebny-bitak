@@ -1,12 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AuthService } from '../../core/auth.service';
 import { monthStartKey, todayKey, formatArabicDate } from '../../core/dates';
 import { errorMessage } from '../../core/errors';
 import { HouseService } from '../../core/house.service';
 import { House, RangeTotals, sellerTypeLabel } from '../../core/models';
+import { formatPrice } from '../../core/price';
 import { SeoService } from '../../core/seo.service';
 import { StatsService } from '../../core/stats.service';
+import { youtubeVideoId } from '../../core/youtube';
 import { DateRange } from '../../shared/date-range/date-range';
 import { HouseCard } from '../../shared/house-card/house-card';
 import { Stars } from '../../shared/stars/stars';
@@ -20,10 +24,25 @@ export class HouseDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly houses = inject(HouseService);
   private readonly stats = inject(StatsService);
+  private readonly auth = inject(AuthService);
   private readonly seo = inject(SeoService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly sellerTypeLabel = sellerTypeLabel;
+  protected readonly formatPrice = formatPrice;
   protected readonly formatArabicDate = formatArabicDate;
+  protected readonly isAdmin = () => this.auth.profile()?.role === 'admin';
+  protected isOwner(house: House): boolean {
+    return this.auth.profile()?.uid === house.sellerId;
+  }
+
+  protected youtubeId(url: string): string | null {
+    return youtubeVideoId(url);
+  }
+
+  protected youtubeEmbed(id: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${id}`);
+  }
   protected readonly house = signal<House | null>(null);
   protected readonly related = signal<House[]>([]);
   protected readonly houseStats = signal<RangeTotals>({ views: 0, phoneReveals: 0 });
@@ -57,7 +76,7 @@ export class HouseDetailPage {
     try {
       await this.stats.record(house.id, 'phone');
       this.house.update((current) => (current ? { ...current, phoneRevealCount: current.phoneRevealCount + 1 } : current));
-      await this.loadStats(house);
+      if (this.isAdmin()) await this.loadStats(house);
     } catch (error) {
       this.statsError.set(errorMessage(error));
     }
@@ -114,9 +133,11 @@ export class HouseDetailPage {
         if (requestId === this.requestId) this.statsError.set(errorMessage(error));
       }
       try {
-        const [related] = await Promise.all([this.houses.bySeller(house.sellerId, house.id), this.loadStats(house)]);
+        await this.auth.ensureReady();
+        const related = await this.houses.bySeller(house.sellerId, house.id);
         if (requestId !== this.requestId) return;
         this.related.set(related);
+        if (this.isAdmin()) await this.loadStats(house);
       } catch (error) {
         if (requestId === this.requestId) this.statsError.set(errorMessage(error));
       }

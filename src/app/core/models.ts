@@ -23,6 +23,8 @@ export interface House {
   houseNumber: string;
   locationKey: string;
   photos: string[];
+  youtubeUrl: string;
+  price: number;
   sellerId: string;
   sellerName: string;
   sellerType: SellerType;
@@ -80,5 +82,15 @@ export class HouseAlreadyExistsError extends Error {
   constructor(readonly house: House) {
     super('house-exists');
     this.name = 'HouseAlreadyExistsError';
+  }
+}
+
+export class HousePhotosUploadError extends Error {
+  constructor(
+    readonly house: House,
+    message = 'تم نشر المنزل بدون صور. يمكنك إضافتها من صفحة التعديل.',
+  ) {
+    super(message);
+    this.name = 'HousePhotosUploadError';
   }
 }
