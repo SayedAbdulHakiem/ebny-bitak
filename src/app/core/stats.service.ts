@@ -4,6 +4,7 @@ import { todayKey } from './dates';
 import { FirebaseService } from './firebase.service';
 import { House, HouseStatRow, RangeTotals, SellerStatRow } from './models';
 import { houseDayDocument, houseDaysCollection, houseDocument, sellerDayDocument, sellerDaysCollection } from './paths';
+import { t } from '../../locale/locale';
 
 type ClickKind = 'views' | 'phone';
 
@@ -18,7 +19,7 @@ export class StatsService {
 
     await runTransaction(db, async (transaction) => {
       const houseSnap = await transaction.get(houseRef);
-      if (!houseSnap.exists()) throw new Error('المنزل غير موجود.');
+      if (!houseSnap.exists()) throw new Error(t().errors.houseMissing);
       const sellerId = String(houseSnap.data()['sellerId'] ?? '');
       const houseName = String(houseSnap.data()['name'] ?? '');
       const houseDayRef = houseDayDocument(db, houseId, date);

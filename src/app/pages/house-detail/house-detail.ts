@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -14,6 +14,7 @@ import { youtubeVideoId } from '../../core/youtube';
 import { DateRange } from '../../shared/date-range/date-range';
 import { HouseCard } from '../../shared/house-card/house-card';
 import { Stars } from '../../shared/stars/stars';
+import { t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-house-detail',
@@ -31,6 +32,9 @@ export class HouseDetailPage {
   protected readonly sellerTypeLabel = sellerTypeLabel;
   protected readonly formatPrice = formatPrice;
   protected readonly formatArabicDate = formatArabicDate;
+  protected get text() {
+    return t();
+  }
   protected readonly isAdmin = () => this.auth.profile()?.role === 'admin';
   protected isOwner(house: House): boolean {
     return this.auth.profile()?.uid === house.sellerId;
@@ -59,6 +63,31 @@ export class HouseDetailPage {
   private requestId = 0;
 
   constructor() {
+    effect(() => {
+      const copy = t();
+      const house = this.house();
+      if (this.missing()) {
+        const id = this.route.snapshot.paramMap.get('id') ?? '';
+        this.seo.set({
+          title: copy.detail.missingSeo,
+          description: copy.detail.missingDescription,
+          path: `/houses/${encodeURIComponent(id)}`,
+        });
+        return;
+      }
+      if (!house) return;
+      this.seo.set({
+        title: copy.detail.seoTitle(house.name, house.region, house.sector),
+        description: copy.detail.seoDescription(
+          house.description,
+          house.region,
+          house.sector,
+          house.houseNumber,
+          house.sellerName,
+        ),
+        path: `/houses/${encodeURIComponent(house.id)}`,
+      });
+    });
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const id = params.get('id');
       if (id) void this.openHouse(id);
@@ -86,7 +115,7 @@ export class HouseDetailPage {
     const house = this.house();
     if (!house) return;
     if (this.from() > this.to()) {
-      this.statsError.set('تاريخ البداية يجب أن يسبق تاريخ النهاية.');
+      this.statsError.set(t().errors.dateOrder);
       return;
     }
     this.statsError.set('');
@@ -112,19 +141,9 @@ export class HouseDetailPage {
       if (!house) {
         this.house.set(null);
         this.missing.set(true);
-        this.seo.set({
-          title: 'المنزل غير موجود | ابني بيتك',
-          description: 'لم يتم العثور على هذا المنزل في ابني بيتك.',
-          path: `/houses/${encodeURIComponent(id)}`,
-        });
         return;
       }
       this.house.set(house);
-      this.seo.set({
-        title: `${house.name} | المنطقة ${house.region} القطاع ${house.sector}`,
-        description: `${house.description} للبيع أو العرض عبر ابني بيتك. المنطقة ${house.region}، القطاع ${house.sector}، رقم المنزل ${house.houseNumber}. البائع ${house.sellerName}.`,
-        path: `/houses/${encodeURIComponent(house.id)}`,
-      });
       try {
         await this.stats.record(house.id, 'views');
         if (requestId !== this.requestId) return;

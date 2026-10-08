@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
+    <script>
+      try {
+        if (localStorage.getItem('ebny-locale') === 'en') {
+          document.documentElement.lang = 'en';
+          document.documentElement.dir = 'ltr';
+        }
+      } catch (e) {}
+    </script>
     <meta charset="utf-8" />
     <title>ابني بيتك | ebny-bitak — بحث المنازل حسب المنطقة والقطاع</title>
     <base href="/" />

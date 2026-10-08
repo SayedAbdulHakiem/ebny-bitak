@@ -1,26 +1,26 @@
 <section class="page-intro">
-  <p class="eyebrow">حساب البائع</p>
-  <h1>إضافة منزل</h1>
-  <p>لا يمكن تكرار المنطقة والقطاع ورقم المنزل. إذا كان المنزل موجوداً ستظهر بيانات بائعه. الحد الأقصى للصور {{ maxPhotos }}.</p>
+  <p class="eyebrow">{{ text.sellerAccount }}</p>
+  <h1>{{ text.addHouse }}</h1>
+  <p>{{ text.addHousePage.intro(maxPhotos) }}</p>
 </section>
 
 <form class="panel form-grid" (submit)="$event.preventDefault(); submit()">
   <label class="span-2">
-    الوصف المختصر
+    {{ text.shortDescription }}
     <input
       [value]="name()"
       (input)="setName($event)"
       maxlength="80"
       required
-      placeholder="مثال: منزل أمام النادي، 3 أدوار على الشارع"
+      [placeholder]="text.addHousePage.shortPlaceholder"
     />
   </label>
   <label class="span-2">
-    الوصف
+    {{ text.description }}
     <textarea [value]="description()" (input)="setDescription($event)" maxlength="600" rows="5" required></textarea>
   </label>
   <label>
-    المنطقة
+    {{ text.region }}
     <select [value]="region()" (change)="setRegion($event)">
       @for (item of regions; track item) {
         <option [value]="item">{{ item }}</option>
@@ -28,7 +28,7 @@
     </select>
   </label>
   <label>
-    القطاع
+    {{ text.sector }}
     <select [value]="sector()" (change)="setSector($event)">
       @for (item of sectors; track item) {
         <option [value]="item">{{ item }}</option>
@@ -36,29 +36,29 @@
     </select>
   </label>
   <label>
-    رقم المنزل
-    <input [value]="houseNumber()" (input)="setHouseNumber($event)" maxlength="20" required placeholder="مثال: 15" />
+    {{ text.houseNumber }}
+    <input [value]="houseNumber()" (input)="setHouseNumber($event)" maxlength="20" required [placeholder]="text.addHousePage.housePlaceholder" />
   </label>
   <label>
-    السعر بالجنيه
-    <input [value]="price()" (input)="setPrice($event)" inputmode="numeric" required placeholder="مثال: 2,700,000" dir="ltr" />
+    {{ text.price }}
+    <input [value]="price()" (input)="setPrice($event)" inputmode="numeric" required [placeholder]="text.addHousePage.pricePlaceholder" dir="ltr" />
   </label>
 
   <label class="span-2">
-    رابط يوتيوب
+    {{ text.youtube }}
     <input
       [value]="youtubeUrl()"
       (input)="setYoutubeUrl($event)"
       maxlength="200"
       inputmode="url"
-      placeholder="https://www.youtube.com/watch?v=xxxxxxxxxxx"
+      [placeholder]="text.addHousePage.youtubePlaceholder"
       dir="ltr"
     />
   </label>
 
   <div class="span-2">
     <label class="file-label">
-      صور المنزل ({{ maxPhotos }} كحد أقصى)
+      {{ text.photoCount(maxPhotos) }}
       <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple (change)="addPhotos($event)" />
     </label>
     @if (photos().length) {
@@ -66,7 +66,7 @@
         @for (photo of photos(); track photo.preview) {
           <figure>
             <img [src]="photo.preview" alt="" />
-            <button type="button" (click)="removePhoto($index)">حذف</button>
+            <button type="button" (click)="removePhoto($index)">{{ text.delete }}</button>
           </figure>
         }
       </div>
@@ -74,43 +74,43 @@
   </div>
 
   @if (checking()) {
-    <p class="muted span-2">جارٍ التحقق من المنطقة والقطاع ورقم المنزل…</p>
+    <p class="muted span-2">{{ text.addHousePage.checking }}</p>
   }
 
   @if (existing(); as current) {
     <section class="notice span-2">
-      <h2>هذا المنزل مسجّل مسبقاً</h2>
-      <p>لا يمكن إضافة إعلان جديد لنفس المنطقة والقطاع ورقم المنزل. بيانات البائع الحالي:</p>
+      <h2>{{ text.addHousePage.alreadyRegistered }}</h2>
+      <p>{{ text.addHousePage.alreadyBody }}</p>
       <dl>
         <div>
-          <dt>اسم البائع</dt>
+          <dt>{{ text.sellerName }}</dt>
           <dd>{{ current.sellerName }}</dd>
         </div>
         <div>
-          <dt>نوع البائع</dt>
+          <dt>{{ text.sellerType }}</dt>
           <dd>{{ sellerTypeLabel(current.sellerType) }}</dd>
         </div>
         <div>
-          <dt>التقييم</dt>
+          <dt>{{ text.rating }}</dt>
           <dd><app-stars [rating]="current.sellerRating" /></dd>
         </div>
         <div>
-          <dt>الهاتف</dt>
+          <dt>{{ text.phone }}</dt>
           <dd><a [href]="'tel:' + current.sellerPhone">{{ current.sellerPhone }}</a></dd>
         </div>
         <div>
-          <dt>الوصف المختصر</dt>
+          <dt>{{ text.shortDescription }}</dt>
           <dd>{{ current.name }}</dd>
         </div>
       </dl>
-      <a class="button secondary" [routerLink]="['/houses', current.id]">عرض الإعلان</a>
+      <a class="button secondary" [routerLink]="['/houses', current.id]">{{ text.viewListing }}</a>
       @if (canEdit(current)) {
-        <a class="button" [routerLink]="['/seller/houses', current.id, 'edit']">تعديل الإعلان</a>
+        <a class="button" [routerLink]="['/seller/houses', current.id, 'edit']">{{ text.editListing }}</a>
       }
       @if (canUploadPhotos(current)) {
-        <p>الإعلان محفوظ بدون صور. اختر الصور من الحقل أعلاه ثم ارفعها.</p>
+        <p>{{ text.addHousePage.noPhotos }}</p>
         <button class="button" type="button" (click)="uploadExistingPhotos()" [disabled]="busy() || photos().length === 0">
-          {{ busy() ? 'جارٍ الرفع…' : 'رفع الصور' }}
+          {{ busy() ? text.uploading : text.addHousePage.uploadPhotos }}
         </button>
       }
     </section>
@@ -121,12 +121,12 @@
   }
   @if (successId()) {
     <p class="success span-2" role="status">
-      {{ successText() }}
-      <a [routerLink]="['/houses', successId()]">فتح صفحة التفاصيل</a>
+      {{ successKind() === 'photos' ? text.photosUploaded : text.housePublished }}
+      <a [routerLink]="['/houses', successId()]">{{ text.openDetails }}</a>
     </p>
   }
 
   <button class="button" type="submit" [disabled]="busy() || !!existing()">
-    {{ busy() ? 'جارٍ الحفظ…' : 'نشر المنزل' }}
+    {{ busy() ? text.saving : text.publishHouse }}
   </button>
 </form>

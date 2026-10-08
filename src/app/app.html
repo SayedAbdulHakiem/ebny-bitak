@@ -1,39 +1,78 @@
-<a class="skip-link" href="#content">تخطي إلى المحتوى</a>
+<a class="skip-link" href="#content">{{ text.skip }}</a>
 
 @if (!firebase.configured) {
   <p class="banner" role="status">
-    أضف إعدادات مشروع Firebase في الملف <code>src/app/core/firebase-config.ts</code> ثم فعّل الدخول وFirestore وStorage.
+    {{ text.firebaseBannerBefore }} <code>{{ text.firebaseConfigPath }}</code> {{ text.firebaseBannerAfter }}
   </p>
 }
 
 <div class="app-shell">
   <header class="site-header">
     <a class="brand" routerLink="/" (click)="closeMenu()">
-      <img src="logo.png" alt="ابني بيتك — للبيع والشراء والموردين" width="320" height="427" />
+      <img src="logo.png" [alt]="text.logoAlt" width="320" height="427" />
     </a>
 
-    <button class="menu-button" type="button" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()">
-      القائمة
-    </button>
+    <div class="header-actions">
+      <button type="button" class="lang-switch" (click)="switchLocale()" [attr.aria-label]="text.language">
+        {{ otherLanguage() }}
+      </button>
+      <button class="menu-button" type="button" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()">
+        <app-icon name="menu" />
+        {{ text.menu }}
+      </button>
+    </div>
 
-    <nav [class.open]="menuOpen()" aria-label="التنقل الرئيسي">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">البحث</a>
+    <nav [class.open]="menuOpen()" [attr.aria-label]="text.navLabel">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">
+        <app-icon name="search" />
+        {{ text.search }}
+      </a>
       @if (auth.profile()?.role === 'admin') {
-        <a routerLink="/stats" routerLinkActive="active" (click)="closeMenu()">الإحصائيات</a>
-        <a routerLink="/admin/sellers" routerLinkActive="active" (click)="closeMenu()">البائعون</a>
+        <a routerLink="/stats" routerLinkActive="active" (click)="closeMenu()">
+          <app-icon name="stats" />
+          {{ text.stats }}
+        </a>
+        <a routerLink="/admin/sellers" routerLinkActive="active" (click)="closeMenu()">
+          <app-icon name="sellers" />
+          {{ text.sellers }}
+        </a>
       }
       @if (auth.profile()?.role === 'seller') {
-        <a routerLink="/seller/houses" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">منازلي</a>
-        <a routerLink="/seller/houses/new" routerLinkActive="active" (click)="closeMenu()">إضافة منزل</a>
+        <a routerLink="/seller/houses" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">
+          <app-icon name="houses" />
+          {{ text.myHouses }}
+        </a>
+        <a routerLink="/seller/houses/new" routerLinkActive="active" (click)="closeMenu()">
+          <app-icon name="add" />
+          {{ text.addHouse }}
+        </a>
       }
-      @if (auth.profile(); as profile) {
-        <span class="who">{{ profile.displayName }} · {{ profile.role === 'admin' ? 'مدير' : sellerTypeLabel(profile.sellerType) }}</span>
-        <button type="button" class="button secondary" (click)="logout()">خروج</button>
-      } @else {
-        <a class="button" routerLink="/login" (click)="closeMenu()">دخول</a>
+      @if (!auth.profile()) {
+        <a class="button" routerLink="/login" (click)="closeMenu()">
+          <app-icon name="login" />
+          {{ text.login }}
+        </a>
+      }
+      @if (auth.profile()) {
+        <button type="button" class="button secondary nav-logout" (click)="logout()">
+          <app-icon name="logout" />
+          {{ text.logout }}
+        </button>
       }
     </nav>
   </header>
+
+  @if (auth.profile(); as profile) {
+    <section class="welcome" [attr.aria-label]="text.accountLabel">
+      <span class="welcome-avatar" aria-hidden="true">
+        <app-icon name="user" />
+      </span>
+      <div>
+        <p class="welcome-title">{{ text.welcome(profile.displayName) }}</p>
+        <p class="welcome-role">{{ profile.role === 'admin' ? text.roles.admin : sellerTypeLabel(profile.sellerType) }}</p>
+      </div>
+    </section>
+  }
 
   <main id="content">
     <router-outlet />
@@ -41,21 +80,20 @@
 
   <footer class="site-footer">
     <div>
-      <strong>ابني بيتك</strong>
-      <p>
-        منصة ebny-bitak للبحث عن المنازل والعقارات: ابني بيت حسب المنطقة من 1 إلى 7، والقطاع من أ إلى ي، ورقم المنزل.
-        قارن المالك والوسيط والشركة، واطلع على التقييم وعدد الزيارات قبل التواصل.
-      </p>
+      <strong>{{ text.footerTitle }}</strong>
+      <p>{{ text.footerAbout }}</p>
     </div>
     <div class="footer-links">
-      <a routerLink="/">بحث المنازل</a>
+      <a routerLink="/"><app-icon name="search" /> {{ text.searchHouses }}</a>
       @if (auth.profile()?.role === 'seller') {
-        <a routerLink="/seller/houses">منازلي</a>
+        <a routerLink="/seller/houses"><app-icon name="houses" /> {{ text.myHouses }}</a>
       }
       @if (auth.profile()?.role === 'admin') {
-        <a routerLink="/stats">إحصائيات النقرات</a>
+        <a routerLink="/stats"><app-icon name="stats" /> {{ text.clickStats }}</a>
       }
-      <a routerLink="/login">تسجيل الدخول</a>
+      @if (!auth.profile()) {
+        <a routerLink="/login"><app-icon name="login" /> {{ text.loginLong }}</a>
+      }
     </div>
   </footer>
 </div>

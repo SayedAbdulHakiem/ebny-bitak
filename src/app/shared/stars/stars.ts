@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { numberLocale, t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-stars',
@@ -8,8 +9,8 @@ export class Stars {
   readonly rating = input(0);
   protected readonly score = computed(() => Math.max(0, Math.min(5, this.rating())));
   protected readonly label = computed(() => {
-    const value = new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 1 }).format(this.score());
-    return `التقييم ${value} من 5`;
+    const value = new Intl.NumberFormat(numberLocale(), { maximumFractionDigits: 1 }).format(this.score());
+    return t().ratingLabel(value);
   });
   protected readonly marks = [1, 2, 3, 4, 5];
 

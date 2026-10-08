@@ -9,7 +9,7 @@
     </div>
   }
   <div class="card-body">
-    <p class="meta">المنطقة {{ house().region }} · القطاع {{ house().sector }} · منزل {{ house().houseNumber }}</p>
+    <p class="meta">{{ text.houseMeta(house().region, house().sector, house().houseNumber) }}</p>
     <h2>{{ house().name }}</h2>
     @if (house().price > 0) {
       <p class="price">{{ formatPrice(house().price) }}</p>
@@ -20,6 +20,6 @@
       <strong>{{ house().sellerName }}</strong>
       <app-stars [rating]="house().sellerRating" />
     </div>
-    <p class="views">{{ house().viewCount }} زيارة</p>
+    <p class="views">{{ text.visits(house().viewCount) }}</p>
   </div>
 </a>

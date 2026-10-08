@@ -1,13 +1,13 @@
 <section class="auth-layout">
   <form class="panel auth-card" (submit)="$event.preventDefault(); submit()">
-    <h1> تسجيل الدخول للبائعين</h1>
+    <h1>{{ text.loginPage.heading }}</h1>
 
     <label>
-      البريد الإلكتروني
+      {{ text.email }}
       <input type="email" [value]="email()" (input)="setEmail($event)" autocomplete="username" required />
     </label>
     <label>
-      كلمة المرور
+      {{ text.password }}
       <input type="password" [value]="password()" (input)="setPassword($event)" autocomplete="current-password" required />
     </label>
 
@@ -15,7 +15,7 @@
       <p class="alert" role="alert">{{ error() }}</p>
     }
 
-    <button class="button" type="submit" [disabled]="busy()">{{ busy() ? 'جارٍ الدخول…' : 'دخول' }}</button>
-    <a routerLink="/">العودة للبحث</a>
+    <button class="button" type="submit" [disabled]="busy()">{{ busy() ? text.signingIn : text.login }}</button>
+    <a routerLink="/">{{ text.backToSearch }}</a>
   </form>
 </section>

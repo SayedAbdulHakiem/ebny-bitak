@@ -20,6 +20,7 @@ import { House, HouseAlreadyExistsError, HouseFilters, HousePhotosUploadError, S
 import { normalizeYoutubeUrl } from './youtube';
 import { parsePrice } from './price';
 import { houseDocument, houseImageDocument, housesCollection } from './paths';
+import { t } from '../../locale/locale';
 
 export interface CreateHouseInput {
   name: string;
@@ -131,22 +132,22 @@ export class HouseService {
     const profile = this.auth.profile();
     const houseRef = houseDocument(this.firebase.requireFirestore(), houseId);
     const snap = await getDoc(houseRef);
-    if (!snap.exists()) throw new Error('المنزل غير موجود.');
+    if (!snap.exists()) throw new Error(t().errors.houseMissing);
     const house = mapHouse(snap.id, snap.data());
     if (!profile || profile.role !== 'seller' || house.sellerId !== profile.uid) {
-      throw new Error('تعديل المنزل متاح لصاحب الإعلان فقط.');
+      throw new Error(t().errors.editOwnerOnly);
     }
 
     const name = input.name.trim();
     const description = input.description.trim();
     const youtubeUrl = normalizeYoutubeUrl(input.youtubeUrl);
     const price = parsePrice(input.price);
-    if (name.length < 3 || name.length > 80) throw new Error('الوصف المختصر يجب أن يكون من 3 إلى 80 حرفاً.');
-    if (description.length < 10 || description.length > 600) throw new Error('وصف المنزل يجب أن يكون من 10 إلى 600 حرف.');
+    if (name.length < 3 || name.length > 80) throw new Error(t().errors.shortDescription);
+    if (description.length < 10 || description.length > 600) throw new Error(t().errors.description);
 
     const keep = input.keepPhotoRefs.filter((photo) => house.photos.includes(photo));
     const removed = house.photos.filter((photo) => !keep.includes(photo));
-    if (keep.length + input.photos.length > MAX_PHOTOS) throw new Error(`الحد الأقصى ${MAX_PHOTOS} صور لكل منزل.`);
+    if (keep.length + input.photos.length > MAX_PHOTOS) throw new Error(t().errors.maxPhotos(MAX_PHOTOS));
     input.photos.forEach(assertPhoto);
 
     const added = input.photos.length
@@ -161,7 +162,7 @@ export class HouseService {
     }
     await this.deletePhotoRefs(removed);
     const updated = await this.getOwned(houseId);
-    if (!updated) throw new Error('تعذر قراءة المنزل بعد حفظ التعديل.');
+    if (!updated) throw new Error(t().errors.readAfterEdit);
     return updated;
   }
 
@@ -179,10 +180,10 @@ export class HouseService {
   async create(input: CreateHouseInput): Promise<House> {
     const profile = this.auth.profile();
     if (!profile || profile.role !== 'seller' || !profile.sellerType) {
-      throw new Error('إضافة المنزل متاحة لحساب بائع مكتمل البيانات.');
+      throw new Error(t().errors.sellerOnlyCreate);
     }
     if (input.photos.length > MAX_PHOTOS) {
-      throw new Error(`الحد الأقصى ${MAX_PHOTOS} صور لكل منزل.`);
+      throw new Error(t().errors.maxPhotos(MAX_PHOTOS));
     }
     input.photos.forEach(assertPhoto);
 
@@ -191,7 +192,7 @@ export class HouseService {
     const key = buildLocationKey(input.region, input.sector, input.houseNumber);
     const houseNumber = normalizeHouseNumber(input.houseNumber);
     if (!key || !houseNumber) {
-      throw new Error('تحقق من المنطقة والقطاع ورقم المنزل.');
+      throw new Error(t().errors.location);
     }
 
     const existing = await this.getById(key);
@@ -224,7 +225,7 @@ export class HouseService {
 
     if (input.photos.length === 0) {
       const created = await this.getById(key);
-      if (!created) throw new Error('تعذر قراءة المنزل بعد حفظه.');
+      if (!created) throw new Error(t().errors.readAfterCreate);
       return created;
     }
 
@@ -235,14 +236,14 @@ export class HouseService {
       if (created) {
         const reason = error instanceof Error && /[\u0600-\u06FF]/.test(error.message)
           ? error.message
-          : 'تم نشر المنزل بدون صور. يمكنك إضافتها من صفحة التعديل.';
+          : t().errors.publishedWithoutPhotos;
         throw new HousePhotosUploadError(created, reason);
       }
       throw error;
     }
 
     const created = await this.getById(key);
-    if (!created) throw new Error('تعذر قراءة المنزل بعد حفظه.');
+    if (!created) throw new Error(t().errors.readAfterCreate);
     return created;
   }
 
@@ -254,21 +255,21 @@ export class HouseService {
       ? (raw.data()?.['photos'] as unknown[]).filter((item) => typeof item === 'string')
       : [];
     if (!profile || profile.role !== 'seller' || !house || house.sellerId !== profile.uid) {
-      throw new Error('رفع الصور متاح لصاحب الإعلان فقط.');
+      throw new Error(t().errors.photosOwnerOnly);
     }
     if (stored.length + files.length > MAX_PHOTOS) {
-      throw new Error(`الحد الأقصى ${MAX_PHOTOS} صور لكل منزل.`);
+      throw new Error(t().errors.maxPhotos(MAX_PHOTOS));
     }
     files.forEach(assertPhoto);
     await this.attachPhotos(houseId, files, stored.length);
     const updated = await this.getById(houseId);
-    if (!updated) throw new Error('تعذر قراءة المنزل بعد حفظ الصور.');
+    if (!updated) throw new Error(t().errors.readAfterPhotos);
     return updated;
   }
 
   private async attachPhotos(houseId: string, files: File[], startIndex = 0): Promise<void> {
     const profile = this.auth.profile();
-    if (!profile) throw new Error('يجب تسجيل الدخول قبل رفع الصور.');
+    if (!profile) throw new Error(t().errors.loginBeforePhotos);
     const photos = await this.uploadToDatabase(profile.uid, houseId, files, startIndex);
     const houseRef = houseDocument(this.firebase.requireFirestore(), houseId);
     const current = await getDoc(houseRef);
@@ -330,10 +331,10 @@ export function assertPhoto(file: File): void {
   const type = file.type === 'image/jpg' ? 'image/jpeg' : file.type;
   const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
   if (!allowed.includes(type)) {
-    throw new Error('الصور المسموحة: JPG أو PNG أو WEBP أو GIF.');
+    throw new Error(t().errors.photoTypes);
   }
   if (file.size > MAX_PHOTO_BYTES) {
-    throw new Error('حجم الصورة يجب ألا يتجاوز 5 ميغابايت.');
+    throw new Error(t().errors.photoTooBig);
   }
 }
 
@@ -355,7 +356,7 @@ async function compressPhoto(file: File): Promise<{ contentType: string; data: s
   try {
     bitmap = await createImageBitmap(file);
   } catch {
-    throw new Error('تعذر قراءة الصورة. استخدم ملف JPG أو PNG.');
+    throw new Error(t().errors.photoUnreadable);
   }
 
   try {
@@ -367,7 +368,7 @@ async function compressPhoto(file: File): Promise<{ contentType: string; data: s
       quality = Math.max(0.45, quality - 0.1);
       maxEdge = Math.max(640, Math.round(maxEdge * 0.75));
     }
-    throw new Error('الصورة كبيرة حتى بعد التصغير. اختر صورة أصغر.');
+    throw new Error(t().errors.photoStillTooBig);
   } finally {
     bitmap.close();
   }
@@ -379,14 +380,14 @@ function renderJpeg(bitmap: ImageBitmap, maxEdge: number, quality: number): Prom
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
   canvas.height = Math.max(1, Math.round(bitmap.height * scale));
   const context = canvas.getContext('2d');
-  if (!context) return Promise.reject(new Error('تعذر تجهيز الصورة للرفع.'));
+  if (!context) return Promise.reject(new Error(t().errors.photoPrepare));
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   return canvasToJpeg(canvas, quality);
 }
 
 function canvasToJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('تعذر تجهيز الصورة للرفع.'))), 'image/jpeg', quality);
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(t().errors.photoPrepare))), 'image/jpeg', quality);
   });
 }
 
@@ -398,7 +399,7 @@ function blobToBase64(blob: Blob): Promise<string> {
       const comma = result.indexOf(',');
       resolve(comma >= 0 ? result.slice(comma + 1) : result);
     };
-    reader.onerror = () => reject(new Error('تعذر قراءة الصورة.'));
+    reader.onerror = () => reject(new Error(t().errors.photoRead));
     reader.readAsDataURL(blob);
   });
 }

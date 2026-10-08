@@ -1,3 +1,5 @@
+import { t } from '../../locale/locale';
+
 const YOUTUBE_HOSTS = new Set([
   'youtube.com',
   'www.youtube.com',
@@ -38,7 +40,7 @@ export function normalizeYoutubeUrl(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
   const id = youtubeVideoId(trimmed);
-  if (!id) throw new Error('رابط يوتيوب غير صالح. مثال: https://www.youtube.com/watch?v=xxxxxxxxxxx');
+  if (!id) throw new Error(t().errors.youtubeInvalid);
   return `https://www.youtube.com/watch?v=${id}`;
 }
 

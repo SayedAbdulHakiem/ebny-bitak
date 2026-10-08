@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { errorMessage } from '../../core/errors';
@@ -6,6 +6,7 @@ import { groupPriceInput } from '../../core/price';
 import { assertPhoto, HouseService, MAX_PHOTOS } from '../../core/house.service';
 import { House } from '../../core/models';
 import { SeoService } from '../../core/seo.service';
+import { t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-edit-house',
@@ -18,6 +19,9 @@ export class EditHousePage {
   private readonly seo = inject(SeoService);
 
   protected readonly maxPhotos = MAX_PHOTOS;
+  protected get text() {
+    return t();
+  }
   protected readonly house = signal<House | null>(null);
   protected readonly name = signal('');
   protected readonly description = signal('');
@@ -32,10 +36,13 @@ export class EditHousePage {
   protected readonly saved = signal(false);
 
   constructor() {
-    this.seo.set({
-      title: 'تعديل منزل | ابني بيتك',
-      description: 'يعدّل البائع وصف منزله وصوره في ابني بيتك.',
-      path: '/seller/houses',
+    effect(() => {
+      const copy = t();
+      this.seo.set({
+        title: copy.editHouse.title,
+        description: copy.editHouse.description,
+        path: '/seller/houses',
+      });
     });
     inject(DestroyRef).onDestroy(() => {
       this.added().forEach((photo) => URL.revokeObjectURL(photo.preview));
@@ -80,7 +87,7 @@ export class EditHousePage {
     const files = Array.from(input.files ?? []);
     input.value = '';
     if (this.kept().length + this.added().length + files.length > MAX_PHOTOS) {
-      this.error.set(`الحد الأقصى ${MAX_PHOTOS} صور لكل منزل.`);
+      this.error.set(t().errors.maxPhotos(MAX_PHOTOS));
       return;
     }
     try {
@@ -110,11 +117,11 @@ export class EditHousePage {
     const name = this.name().trim();
     const description = this.description().trim();
     if (name.length < 3 || name.length > 80) {
-      this.error.set('الوصف المختصر يجب أن يكون من 3 إلى 80 حرفاً.');
+      this.error.set(t().errors.shortDescription);
       return;
     }
     if (description.length < 10 || description.length > 600) {
-      this.error.set('وصف المنزل يجب أن يكون من 10 إلى 600 حرف.');
+      this.error.set(t().errors.description);
       return;
     }
     this.error.set('');

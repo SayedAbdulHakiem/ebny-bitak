@@ -1,32 +1,32 @@
 <section class="page-intro">
-  <p class="eyebrow">حساب المدير</p>
-  <h1>البائعون</h1>
-  <p>إضافة حساب بائع جديد أو تعديل اسمه وهاتفه ونوعه وتقييمه. صلاحية المدير نفسه لا تُنشأ من هنا، بل من وثيقة المستخدم في قاعدة البيانات.</p>
+  <p class="eyebrow">{{ text.adminAccount }}</p>
+  <h1>{{ text.sellers }}</h1>
+  <p>{{ text.admin.intro }}</p>
 </section>
 
 <div class="split">
   <form class="panel form-grid" (submit)="$event.preventDefault(); submit()">
-    <h2 class="span-2">{{ editingId() ? 'تعديل بائع' : 'بائع جديد' }}</h2>
+    <h2 class="span-2">{{ editingId() ? text.admin.editSeller : text.admin.newSeller }}</h2>
     <label>
-      الاسم
+      {{ text.name }}
       <input [value]="displayName()" (input)="setName($event)" required />
     </label>
     <label>
-      البريد الإلكتروني
+      {{ text.email }}
       <input type="email" [value]="email()" (input)="setEmail($event)" [disabled]="!!editingId()" required />
     </label>
     @if (!editingId()) {
       <label>
-        كلمة المرور
+        {{ text.password }}
         <input type="password" [value]="password()" (input)="setPassword($event)" autocomplete="new-password" required />
       </label>
     }
     <label>
-      الهاتف
+      {{ text.phone }}
       <input [value]="phone()" (input)="setPhone($event)" inputmode="tel" required />
     </label>
     <label>
-      نوع البائع
+      {{ text.sellerType }}
       <select [value]="sellerType()" (change)="setType($event)">
         @for (type of sellerTypes; track type) {
           <option [value]="type">{{ sellerTypeLabel(type) }}</option>
@@ -34,42 +34,45 @@
       </select>
     </label>
     <label>
-      التقييم من 5
+      {{ text.admin.ratingOutOf }}
       <input type="number" min="0" max="5" step="0.5" [value]="rating()" (input)="setRating($event)" required />
     </label>
 
     @if (error()) {
       <p class="alert span-2" role="alert">{{ error() }}</p>
     }
-    @if (success()) {
-      <p class="success span-2" role="status">{{ success() }}</p>
+    @if (notice() === 'updated') {
+      <p class="success span-2" role="status">{{ text.admin.updated }}</p>
+    }
+    @if (notice() === 'created') {
+      <p class="success span-2" role="status">{{ text.admin.created }}</p>
     }
 
     <div class="actions span-2">
       <button class="button" type="submit" [disabled]="busy()">
-        {{ busy() ? 'جارٍ الحفظ…' : editingId() ? 'حفظ التعديل' : 'إضافة البائع' }}
+        {{ busy() ? text.saving : editingId() ? text.saveEdit : text.admin.addSeller }}
       </button>
       @if (editingId()) {
-        <button class="button secondary" type="button" (click)="cancelEdit()">إلغاء</button>
+        <button class="button secondary" type="button" (click)="cancelEdit()">{{ text.cancel }}</button>
       }
     </div>
   </form>
 
   <section class="panel">
-    <h2>البائعون الحاليون</h2>
+    <h2>{{ text.admin.current }}</h2>
     @if (loading()) {
-      <p class="muted">جارٍ التحميل…</p>
+      <p class="muted">{{ text.admin.loading }}</p>
     } @else if (sellers().length === 0) {
-      <p class="empty">لا يوجد بائعون بعد.</p>
+      <p class="empty">{{ text.admin.empty }}</p>
     } @else {
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>الاسم</th>
-              <th>النوع</th>
-              <th>التقييم</th>
-              <th>الهاتف</th>
+              <th>{{ text.name }}</th>
+              <th>{{ text.statsPage.type }}</th>
+              <th>{{ text.rating }}</th>
+              <th>{{ text.phone }}</th>
               <th></th>
             </tr>
           </thead>
@@ -83,7 +86,7 @@
                 <td><span [class]="'tag tag-' + (seller.sellerType || 'owner')">{{ sellerTypeLabel(seller.sellerType) }}</span></td>
                 <td>{{ seller.rating }}</td>
                 <td dir="ltr">{{ seller.phone }}</td>
-                <td><button type="button" class="button secondary" (click)="edit(seller)">تعديل</button></td>
+                <td><button type="button" class="button secondary" (click)="edit(seller)">{{ text.edit }}</button></td>
               </tr>
             }
           </tbody>

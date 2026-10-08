@@ -1,3 +1,5 @@
+import { dateLocale } from '../../locale/locale';
+
 export function todayKey(date = new Date()): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -15,5 +17,5 @@ export function isDateKey(value: string): boolean {
 
 export function formatArabicDate(millis: number): string {
   if (!millis) return '';
-  return new Intl.DateTimeFormat('ar-EG', { dateStyle: 'medium' }).format(new Date(millis));
+  return new Intl.DateTimeFormat(dateLocale(), { dateStyle: 'medium' }).format(new Date(millis));
 }

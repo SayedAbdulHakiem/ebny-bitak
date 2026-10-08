@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../../core/auth.service';
 import { monthStartKey, todayKey } from '../../core/dates';
 import { errorMessage } from '../../core/errors';
@@ -7,6 +7,7 @@ import { HouseStatRow, SellerStatRow, sellerTypeLabel } from '../../core/models'
 import { SeoService } from '../../core/seo.service';
 import { StatsService } from '../../core/stats.service';
 import { DateRange } from '../../shared/date-range/date-range';
+import { t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-stats',
@@ -20,6 +21,9 @@ export class StatsPage {
   private readonly seo = inject(SeoService);
 
   protected readonly sellerTypeLabel = sellerTypeLabel;
+  protected get text() {
+    return t();
+  }
   protected readonly from = signal(monthStartKey());
   protected readonly to = signal(todayKey());
   protected readonly sellerFilter = signal('');
@@ -29,11 +33,13 @@ export class StatsPage {
   protected readonly error = signal('');
 
   constructor() {
-    this.seo.set({
-      title: 'إحصائيات النقرات | ابني بيتك',
-      description:
-        'إحصائيات ابني بيتك: نقرات المنازل، إجمالي نقرات منازل كل بائع، ونقرات إظهار رقم الهاتف حسب تاريخ البداية والنهاية.',
-      path: '/stats',
+    effect(() => {
+      const copy = t();
+      this.seo.set({
+        title: copy.statsPage.title,
+        description: copy.statsPage.description,
+        path: '/stats',
+      });
     });
     const profile = this.auth.profile();
     if (profile?.role === 'seller') this.sellerFilter.set(profile.uid);
@@ -58,7 +64,7 @@ export class StatsPage {
 
   protected async reload(): Promise<void> {
     if (this.from() > this.to()) {
-      this.error.set('تاريخ البداية يجب أن يسبق تاريخ النهاية.');
+      this.error.set(t().errors.dateOrder);
       return;
     }
     this.loading.set(true);

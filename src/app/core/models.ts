@@ -1,4 +1,5 @@
 import { Sector } from './location';
+import { t } from '../../locale/locale';
 
 export type UserRole = 'admin' | 'seller';
 export type SellerType = 'owner' | 'agent' | 'company';
@@ -64,14 +65,20 @@ export interface SellerStatRow {
 export const SELLER_TYPES: SellerType[] = ['owner', 'agent', 'company'];
 
 export const SELLER_TYPE_LABELS: Record<SellerType, string> = {
-  owner: 'مالك',
-  agent: 'وسيط',
-  company: 'شركة',
+  get owner() {
+    return t().sellerTypes.owner;
+  },
+  get agent() {
+    return t().sellerTypes.agent;
+  },
+  get company() {
+    return t().sellerTypes.company;
+  },
 };
 
 export function sellerTypeLabel(type: SellerType | null | undefined): string {
-  if (!type) return 'غير محدد';
-  return SELLER_TYPE_LABELS[type] ?? 'غير محدد';
+  if (!type) return t().sellerTypes.unknown;
+  return SELLER_TYPE_LABELS[type] ?? t().sellerTypes.unknown;
 }
 
 export function isSellerType(value: string): value is SellerType {
@@ -88,7 +95,7 @@ export class HouseAlreadyExistsError extends Error {
 export class HousePhotosUploadError extends Error {
   constructor(
     readonly house: House,
-    message = 'تم نشر المنزل بدون صور. يمكنك إضافتها من صفحة التعديل.',
+    message = t().errors.publishedWithoutPhotos,
   ) {
     super(message);
     this.name = 'HousePhotosUploadError';

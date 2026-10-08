@@ -11,6 +11,7 @@ import { getDoc, getDocs, query, serverTimestamp, setDoc, where, writeBatch, Doc
 import { FirebaseService } from './firebase.service';
 import { AppUser, SellerType, UserRole, isSellerType } from './models';
 import { housesCollection, userDocument, usersCollection } from './paths';
+import { localeId, t } from '../../locale/locale';
 
 export interface CreateSellerInput {
   displayName: string;
@@ -63,7 +64,7 @@ export class AuthService {
     const profile = this.profile();
     if (!profile || (profile.role !== 'admin' && profile.role !== 'seller')) {
       await signOut(auth);
-      throw new Error('لا توجد صلاحية لهذا الحساب. صلاحية المدير تُعيَّن من قاعدة البيانات.');
+      throw new Error(t().errors.noRole);
     }
     return profile;
   }
@@ -126,12 +127,12 @@ export class AuthService {
     return snap.docs
       .map((item) => mapUser(item.id, item.data()))
       .filter((user): user is AppUser => user !== null)
-      .sort((a, b) => a.displayName.localeCompare(b.displayName, 'ar'));
+      .sort((a, b) => a.displayName.localeCompare(b.displayName, localeId()));
   }
 
   private requireAdmin(): void {
     if (this.profile()?.role !== 'admin') {
-      throw new Error('هذه الصفحة مخصصة للمدير.');
+      throw new Error(t().errors.adminOnly);
     }
   }
 
@@ -153,7 +154,7 @@ export class AuthService {
     const started = Date.now();
     while (this.authUid() !== uid) {
       if (Date.now() - started > 10000) {
-        throw new Error('انتهت مهلة التحقق من الحساب.');
+        throw new Error(t().errors.authTimeout);
       }
       await delay(40);
     }

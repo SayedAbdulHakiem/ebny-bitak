@@ -1,11 +1,11 @@
 <form class="date-range" (submit)="submit($event)">
   <label>
-    من تاريخ
+    {{ text.dates.from }}
     <input type="date" [value]="from()" (input)="setFrom($event)" required />
   </label>
   <label>
-    إلى تاريخ
+    {{ text.dates.to }}
     <input type="date" [value]="to()" (input)="setTo($event)" required />
   </label>
-  <button type="submit" class="button secondary">عرض الإحصائية</button>
+  <button type="submit" class="button secondary">{{ text.dates.apply }}</button>
 </form>

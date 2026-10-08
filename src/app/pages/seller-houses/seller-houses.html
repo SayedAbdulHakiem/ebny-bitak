@@ -1,21 +1,21 @@
 <section class="page-intro">
-  <p class="eyebrow">حساب البائع</p>
-  <h1>منازلي</h1>
-  <p>هذه الإعلانات المنشورة باسمك. يمكنك تعديل الوصف المختصر والوصف والصور لأي منزل.</p>
+  <p class="eyebrow">{{ text.sellerAccount }}</p>
+  <h1>{{ text.myHouses }}</h1>
+  <p>{{ text.myHousesPage.intro }}</p>
 </section>
 
 <p class="actions">
-  <a class="button" routerLink="/seller/houses/new">إضافة منزل</a>
+  <a class="button" routerLink="/seller/houses/new">{{ text.addHouse }}</a>
 </p>
 
 @if (loading()) {
-  <p class="muted">جارٍ تحميل المنازل…</p>
+  <p class="muted">{{ text.loadingHouses }}</p>
 } @else if (error()) {
   <p class="alert" role="alert">{{ error() }}</p>
 } @else if (houses().length === 0) {
   <section class="empty-panel">
-    <h2>لا توجد منازل منشورة</h2>
-    <p>أضف أول إعلان ليظهر هنا وفي نتائج البحث.</p>
+    <h2>{{ text.myHousesPage.emptyTitle }}</h2>
+    <p>{{ text.myHousesPage.emptyBody }}</p>
   </section>
 } @else {
   <div class="results">
@@ -31,7 +31,7 @@
           </div>
         }
         <div class="card-body">
-          <p class="meta">المنطقة {{ house.region }} · القطاع {{ house.sector }} · منزل {{ house.houseNumber }}</p>
+          <p class="meta">{{ text.houseMeta(house.region, house.sector, house.houseNumber) }}</p>
           <h2>{{ house.name }}</h2>
           @if (house.price > 0) {
             <p class="price">{{ formatPrice(house.price) }}</p>
@@ -41,11 +41,11 @@
             <span [class]="'tag tag-' + house.sellerType">{{ sellerTypeLabel(house.sellerType) }}</span>
             <app-stars [rating]="house.sellerRating" />
           </div>
-          <p class="views">{{ house.viewCount }} زيارة</p>
+          <p class="views">{{ text.visits(house.viewCount) }}</p>
         </div>
         <div class="card-actions">
-          <a class="button" [routerLink]="['/seller/houses', house.id, 'edit']">تعديل</a>
-          <a class="button secondary" [routerLink]="['/houses', house.id]">عرض الإعلان</a>
+          <a class="button" [routerLink]="['/seller/houses', house.id, 'edit']">{{ text.edit }}</a>
+          <a class="button secondary" [routerLink]="['/houses', house.id]">{{ text.viewListing }}</a>
         </div>
       </article>
     }

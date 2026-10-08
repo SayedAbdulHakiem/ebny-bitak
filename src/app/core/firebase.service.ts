@@ -4,6 +4,7 @@ import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { firebaseConfig, isFirebaseConfigured } from './firebase-config';
+import { t } from '../../locale/locale';
 
 @Injectable({ providedIn: 'root' })
 export class FirebaseService {
@@ -30,17 +31,17 @@ export class FirebaseService {
   }
 
   requireAuth(): Auth {
-    if (!this.auth) throw new Error('أضف إعدادات Firebase أولاً في ملف firebase-config.ts');
+    if (!this.auth) throw new Error(t().errors.firebaseConfig);
     return this.auth;
   }
 
   requireFirestore(): Firestore {
-    if (!this.firestore) throw new Error('أضف إعدادات Firebase أولاً في ملف firebase-config.ts');
+    if (!this.firestore) throw new Error(t().errors.firebaseConfig);
     return this.firestore;
   }
 
   requireStorage(): FirebaseStorage {
-    if (!this.storage) throw new Error('أضف إعدادات Firebase أولاً في ملف firebase-config.ts');
+    if (!this.storage) throw new Error(t().errors.firebaseConfig);
     return this.storage;
   }
 

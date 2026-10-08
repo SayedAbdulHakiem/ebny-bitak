@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { errorMessage } from '../../core/errors';
@@ -7,6 +7,7 @@ import { isRegion, isSector, REGIONS, SECTORS } from '../../core/location';
 import { House } from '../../core/models';
 import { SeoService } from '../../core/seo.service';
 import { HouseCard } from '../../shared/house-card/house-card';
+import { t } from '../../../locale/locale';
 
 type FilterMenu = 'region' | 'sector';
 
@@ -31,13 +32,18 @@ export class HomePage {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly searched = signal(false);
+  protected get text() {
+    return t();
+  }
 
   constructor() {
-    this.seo.set({
-      title: 'ابني بيتك | بحث المنازل حسب المنطقة والقطاع',
-      description:
-        'ابني بيتك منصة للبحث عن المنازل والعقارات حسب المنطقة من 1 إلى 7 والقطاع من أ إلى ي ورقم المنزل. تعرّف على البائع وتقييمه قبل التواصل.',
-      path: '/',
+    effect(() => {
+      const copy = t();
+      this.seo.set({
+        title: copy.home.title,
+        description: copy.home.description,
+        path: '/',
+      });
     });
 
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
@@ -67,16 +73,16 @@ export class HomePage {
 
   protected regionLabel(): string {
     const selected = this.selectedRegions();
-    if (selected.length === 0) return 'كل المناطق';
-    if (selected.length === 1) return `المنطقة ${selected[0]}`;
-    return `${selected.length} مناطق`;
+    if (selected.length === 0) return t().allRegions;
+    if (selected.length === 1) return t().regionOne(selected[0]);
+    return t().regionCount(selected.length);
   }
 
   protected sectorLabel(): string {
     const selected = this.selectedSectors();
-    if (selected.length === 0) return 'كل القطاعات';
-    if (selected.length === 1) return `القطاع ${selected[0]}`;
-    return `${selected.length} قطاعات`;
+    if (selected.length === 0) return t().allSectors;
+    if (selected.length === 1) return t().sectorOne(selected[0]);
+    return t().sectorCount(selected.length);
   }
 
   protected isRegionSelected(region: number): boolean {

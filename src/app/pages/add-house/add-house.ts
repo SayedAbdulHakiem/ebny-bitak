@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorMessage } from '../../core/errors';
 import { groupPriceInput } from '../../core/price';
@@ -8,6 +8,7 @@ import { House, HouseAlreadyExistsError, HousePhotosUploadError, sellerTypeLabel
 import { AuthService } from '../../core/auth.service';
 import { SeoService } from '../../core/seo.service';
 import { Stars } from '../../shared/stars/stars';
+import { t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-add-house',
@@ -24,6 +25,9 @@ export class AddHousePage {
   protected readonly regions = REGIONS;
   protected readonly sectors = SECTORS;
   protected readonly sellerTypeLabel = sellerTypeLabel;
+  protected get text() {
+    return t();
+  }
   protected readonly name = signal('');
   protected readonly description = signal('');
   protected readonly region = signal('1');
@@ -37,13 +41,16 @@ export class AddHousePage {
   protected readonly busy = signal(false);
   protected readonly error = signal('');
   protected readonly successId = signal('');
-  protected readonly successText = signal('تم نشر المنزل.');
+  protected readonly successKind = signal<'' | 'published' | 'photos'>('');
 
   constructor() {
-    this.seo.set({
-      title: 'إضافة منزل | ابني بيتك',
-      description: 'يضيف البائع منزلاً جديداً في ابني بيتك بعد التحقق من المنطقة والقطاع ورقم المنزل، بحد أقصى 5 صور.',
-      path: '/seller/houses/new',
+    effect(() => {
+      const copy = t();
+      this.seo.set({
+        title: copy.addHousePage.title,
+        description: copy.addHousePage.description,
+        path: '/seller/houses/new',
+      });
     });
     inject(DestroyRef).onDestroy(() => {
       this.photos().forEach((photo) => URL.revokeObjectURL(photo.preview));
@@ -91,7 +98,7 @@ export class AddHousePage {
     const files = Array.from(input.files ?? []);
     input.value = '';
     if (this.photos().length + files.length > MAX_PHOTOS) {
-      this.error.set(`الحد الأقصى ${MAX_PHOTOS} صور لكل منزل.`);
+      this.error.set(t().errors.maxPhotos(MAX_PHOTOS));
       return;
     }
     try {
@@ -128,18 +135,19 @@ export class AddHousePage {
     const current = this.existing();
     if (!current || !this.canUploadPhotos(current)) return;
     if (this.photos().length === 0) {
-      this.error.set('اختر صورة واحدة على الأقل.');
+      this.error.set(t().addHousePage.chooseOne);
       return;
     }
     this.error.set('');
     this.successId.set('');
+    this.successKind.set('');
     this.busy.set(true);
     try {
       const updated = await this.houses.addPhotos(
         current.id,
         this.photos().map((photo) => photo.file),
       );
-      this.successText.set('تم رفع الصور.');
+      this.successKind.set('photos');
       this.successId.set(updated.id);
       this.existing.set(updated);
       this.clearDraft();
@@ -153,19 +161,20 @@ export class AddHousePage {
   protected async submit(): Promise<void> {
     this.error.set('');
     this.successId.set('');
+    this.successKind.set('');
     const name = this.name().trim();
     const description = this.description().trim();
     const region = Number(this.region());
     if (name.length < 3 || name.length > 80) {
-      this.error.set('الوصف المختصر يجب أن يكون من 3 إلى 80 حرفاً.');
+      this.error.set(t().errors.shortDescription);
       return;
     }
     if (description.length < 10 || description.length > 600) {
-      this.error.set('وصف المنزل يجب أن يكون من 10 إلى 600 حرف.');
+      this.error.set(t().errors.description);
       return;
     }
     if (!buildLocationKey(region, this.sector(), this.houseNumber())) {
-      this.error.set('المنطقة من 1 إلى 7، والقطاع من أ إلى ي، ورقم المنزل حروف أو أرقام بدون رمز _.');
+      this.error.set(t().errors.locationRules);
       return;
     }
 
@@ -184,12 +193,13 @@ export class AddHousePage {
         youtubeUrl: this.youtubeUrl(),
         photos: this.photos().map((photo) => photo.file),
       });
-      this.successText.set('تم نشر المنزل.');
+      this.successKind.set('published');
       this.successId.set(created.id);
       this.clearDraft();
     } catch (error) {
       if (error instanceof HouseAlreadyExistsError) this.existing.set(error.house);
       if (error instanceof HousePhotosUploadError) {
+        this.successKind.set('published');
         this.successId.set(error.house.id);
         this.clearDraft();
       }
@@ -211,6 +221,7 @@ export class AddHousePage {
 
   private scheduleCheck(): void {
     this.successId.set('');
+    this.successKind.set('');
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.checkExisting(), 400);
   }

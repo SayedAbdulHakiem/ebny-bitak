@@ -1,19 +1,16 @@
 <section class="page-intro">
-  <p class="eyebrow">نشاط الزوار</p>
-  <h1>إحصائيات النقرات</h1>
-  <p>
-    نقرات فتح صفحة المنزل، ومجموع نقرات منازل كل بائع، ونقرات زر إظهار رقم الهاتف. اختر الفترة الزمنية، والتاريخ يُحسب
-    بتوقيت جهازك.
-  </p>
+  <p class="eyebrow">{{ text.activity }}</p>
+  <h1>{{ text.clickStats }}</h1>
+  <p>{{ text.statsPage.intro }}</p>
 </section>
 
 <section class="panel">
   <app-date-range [(from)]="from" [(to)]="to" (apply)="reload()" />
   @if (sellerRows().length) {
     <label>
-      البائع
+      {{ text.statsPage.seller }}
       <select [value]="sellerFilter()" (change)="setSeller($event)">
-        <option value="">كل البائعين</option>
+        <option value="">{{ text.statsPage.allSellers }}</option>
         @for (seller of sellerRows(); track seller.sellerId) {
           <option [value]="seller.sellerId">{{ seller.sellerName }}</option>
         }
@@ -24,24 +21,24 @@
     <p class="alert" role="alert">{{ error() }}</p>
   }
   @if (loading()) {
-    <p class="muted">جارٍ جمع النقرات…</p>
+    <p class="muted">{{ text.statsPage.loading }}</p>
   }
 </section>
 
 <section class="panel">
-  <h2>البائعون</h2>
+  <h2>{{ text.statsPage.sellers }}</h2>
   @if (!loading() && visibleSellers().length === 0) {
-    <p class="empty">لا توجد نقرات أو منازل في هذه الفترة.</p>
+    <p class="empty">{{ text.statsPage.empty }}</p>
   } @else if (!loading()) {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>البائع</th>
-            <th>النوع</th>
-            <th>المنازل</th>
-            <th>نقرات المنازل</th>
-            <th>نقرات الهاتف</th>
+            <th>{{ text.statsPage.seller }}</th>
+            <th>{{ text.statsPage.type }}</th>
+            <th>{{ text.statsPage.houses }}</th>
+            <th>{{ text.statsPage.houseClicks }}</th>
+            <th>{{ text.statsPage.phoneClicks }}</th>
           </tr>
         </thead>
         <tbody>
@@ -61,24 +58,24 @@
 </section>
 
 <section class="panel">
-  <h2>المنازل</h2>
+  <h2>{{ text.statsPage.houses }}</h2>
   @if (!loading() && visibleHouses().length) {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>المنزل</th>
-            <th>الموقع</th>
-            <th>البائع</th>
-            <th>النقرات</th>
-            <th>الهاتف</th>
+            <th>{{ text.statsPage.house }}</th>
+            <th>{{ text.statsPage.location }}</th>
+            <th>{{ text.statsPage.seller }}</th>
+            <th>{{ text.statsPage.clicks }}</th>
+            <th>{{ text.phone }}</th>
           </tr>
         </thead>
         <tbody>
           @for (row of visibleHouses(); track row.house.id) {
             <tr>
               <td>{{ row.house.name }}</td>
-              <td>منطقة {{ row.house.region }} · {{ row.house.sector }} · {{ row.house.houseNumber }}</td>
+              <td>{{ text.statsLocation(row.house.region, row.house.sector, row.house.houseNumber) }}</td>
               <td>{{ row.house.sellerName }}</td>
               <td>{{ row.views }}</td>
               <td>{{ row.phoneReveals }}</td>

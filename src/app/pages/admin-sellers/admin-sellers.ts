@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/errors';
 import { SellerType, SELLER_TYPES, sellerTypeLabel, isSellerType, AppUser } from '../../core/models';
 import { SeoService } from '../../core/seo.service';
+import { t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-admin-sellers',
@@ -14,6 +15,9 @@ export class AdminSellersPage {
 
   protected readonly sellerTypes = SELLER_TYPES;
   protected readonly sellerTypeLabel = sellerTypeLabel;
+  protected get text() {
+    return t();
+  }
   protected readonly sellers = signal<AppUser[]>([]);
   protected readonly editingId = signal('');
   protected readonly displayName = signal('');
@@ -23,15 +27,18 @@ export class AdminSellersPage {
   protected readonly sellerType = signal<SellerType>('owner');
   protected readonly rating = signal(0);
   protected readonly error = signal('');
-  protected readonly success = signal('');
+  protected readonly notice = signal<'' | 'updated' | 'created'>('');
   protected readonly busy = signal(false);
   protected readonly loading = signal(true);
 
   constructor() {
-    this.seo.set({
-      title: 'إدارة البائعين | ابني بيتك',
-      description: 'صفحة المدير في ابني بيتك لإضافة البائعين. صلاحية المدير تُعيَّن من قاعدة البيانات فقط.',
-      path: '/admin/sellers',
+    effect(() => {
+      const copy = t();
+      this.seo.set({
+        title: copy.admin.title,
+        description: copy.admin.description,
+        path: '/admin/sellers',
+      });
     });
     void this.reload();
   }
@@ -70,7 +77,7 @@ export class AdminSellersPage {
     this.sellerType.set(seller.sellerType ?? 'owner');
     this.rating.set(seller.rating);
     this.error.set('');
-    this.success.set('');
+    this.notice.set('');
   }
 
   protected cancelEdit(): void {
@@ -85,20 +92,20 @@ export class AdminSellersPage {
 
   protected async submit(): Promise<void> {
     this.error.set('');
-    this.success.set('');
+    this.notice.set('');
     const name = this.displayName().trim();
     const phone = this.phone().trim();
     const digits = phone.replace(/\D/g, '');
     if (name.length < 3) {
-      this.error.set('اسم البائع يجب أن يكون 3 أحرف على الأقل.');
+      this.error.set(t().errors.sellerName);
       return;
     }
     if (digits.length < 8 || digits.length > 15) {
-      this.error.set('رقم الهاتف يجب أن يحتوي على 8 إلى 15 رقماً.');
+      this.error.set(t().errors.phone);
       return;
     }
     if (this.rating() < 0 || this.rating() > 5) {
-      this.error.set('التقييم من 0 إلى 5.');
+      this.error.set(t().errors.rating);
       return;
     }
 
@@ -112,11 +119,11 @@ export class AdminSellersPage {
           sellerType: this.sellerType(),
           rating: this.rating(),
         });
-        this.success.set('تم تحديث بيانات البائع وإعلاناته.');
+        this.notice.set('updated');
         this.cancelEdit();
       } else {
         if (!this.email().includes('@') || this.password().length < 6) {
-          this.error.set('أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف على الأقل.');
+          this.error.set(t().errors.sellerCredentials);
           return;
         }
         await this.auth.createSeller({
@@ -127,7 +134,7 @@ export class AdminSellersPage {
           sellerType: this.sellerType(),
           rating: this.rating(),
         });
-        this.success.set('تم إنشاء حساب البائع. يمكنه الدخول الآن.');
+        this.notice.set('created');
         this.cancelEdit();
       }
       await this.reload();

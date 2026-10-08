@@ -87,15 +87,72 @@ img { max-width: 100%; display: block; }
 
 .house-icon { width: 26px; height: 26px; fill: currentColor; }
 
+.ui-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .menu-button { display: none; }
+
+.header-actions { display: flex; align-items: center; gap: 0.45rem; margin-inline-start: auto; }
+
+.lang-switch {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
 
 nav { display: flex; align-items: center; gap: 0.35rem; }
 
-nav a, .who { padding: 0.45rem 0.75rem; text-decoration: none; color: var(--ink); }
+nav a, .footer-links a { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+nav a { padding: 0.45rem 0.75rem; text-decoration: none; color: var(--ink); }
 
 nav a.active { color: var(--pine-dark); font-weight: 700; }
 
-.who { color: var(--muted); font-size: 0.92rem; }
+nav a.button, nav a.button .ui-icon { color: white; }
+
+.welcome {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0.75rem auto 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.95rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.welcome-avatar {
+  width: 2.7rem;
+  height: 2.7rem;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: #e5f4eb;
+  color: var(--pine-dark);
+}
+
+.welcome-avatar .ui-icon { width: 1.45rem; height: 1.45rem; }
+
+.welcome-title { margin: 0; font-weight: 800; }
+
+.welcome-role { margin: 0.1rem 0 0; color: var(--muted); font-size: 0.9rem; }
+
+nav .nav-logout { margin-inline-start: auto; }
 
 main { flex: 1; padding: 1.4rem 0 2.5rem; }
 
@@ -246,7 +303,7 @@ main { flex: 1; padding: 1.4rem 0 2.5rem; }
 
 .button { background: var(--pine); color: white; }
 
-.button, .button.secondary { padding: 0.75rem 1.1rem; text-decoration: none; display: inline-flex; justify-content: center; }
+.button, .button.secondary { padding: 0.75rem 1.1rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; }
 
 .button.secondary { background: transparent; color: var(--pine-dark); border: 1px solid var(--line); }
 
@@ -293,9 +350,24 @@ textarea { resize: vertical; }
 
 .card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 1rem 1rem; }
 
-.thumb, .gallery-main { aspect-ratio: 4 / 3; width: 100%; object-fit: cover; background: #e7efe9; }
+.thumb {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background: #e7efe9;
+}
+
+.gallery-main {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background: #e7efe9;
+  border-radius: 18px;
+}
 
 .thumb-empty { aspect-ratio: 4 / 3; }
+
+.thumb-empty.gallery-main { aspect-ratio: 4 / 3; }
 
 .card-body, .detail-copy { display: grid; gap: 0.45rem; padding: 0.95rem 1rem 1.1rem; }
 
@@ -362,7 +434,7 @@ textarea { resize: vertical; }
 
 .gallery-thumbs button.active { border-color: var(--pine); }
 
-.gallery-thumbs img { aspect-ratio: 1; object-fit: cover; }
+.gallery-thumbs img { aspect-ratio: 1; width: 100%; object-fit: contain; background: #e7efe9; }
 
 .panel { margin-top: 0.9rem; }
 
@@ -386,7 +458,7 @@ textarea { resize: vertical; }
 
 .photo-drafts figure { margin: 0; width: 120px; }
 
-.photo-drafts img { height: 90px; width: 100%; object-fit: cover; border-radius: 12px; }
+.photo-drafts img { width: 100%; height: auto; max-height: 160px; object-fit: contain; background: #e7efe9; border-radius: 12px; }
 
 .photo-drafts button, .notice a { margin-top: 0.35rem; }
 
@@ -439,10 +511,12 @@ td .muted { display: block; }
 
 @media (max-width: 860px) {
   .site-header { border-radius: 24px; align-items: flex-start; }
-  .menu-button { display: inline-flex; margin-inline-start: auto; background: var(--pine); color: white; border: 0; border-radius: 999px; padding: 0.55rem 0.9rem; }
+  .menu-button { display: inline-flex; align-items: center; gap: 0.4rem; margin-inline-start: 0; background: var(--pine); color: white; border: 0; border-radius: 999px; padding: 0.55rem 0.9rem; }
   .brand img { height: 84px; }
   nav { display: none; width: 100%; flex-direction: column; align-items: stretch; }
   nav.open { display: flex; }
+  nav .nav-logout { margin-inline-start: 0; margin-top: 0.35rem; }
+  .welcome { align-items: flex-start; flex-wrap: wrap; }
   .detail, .stat-grid, .split, .form-grid { grid-template-columns: 1fr; }
   .span-2 { grid-column: auto; }
   .site-footer { flex-direction: column; }

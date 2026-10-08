@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/errors';
 import { SeoService } from '../../core/seo.service';
+import { t } from '../../../locale/locale';
 
 @Component({
   selector: 'app-login',
@@ -19,12 +20,18 @@ export class LoginPage {
   protected readonly password = signal('');
   protected readonly error = signal('');
   protected readonly busy = signal(false);
+  protected get text() {
+    return t();
+  }
 
   constructor() {
-    this.seo.set({
-      title: 'تسجيل الدخول | ابني بيتك',
-      description: 'دخول حسابات البائعين والمدير في منصة ابني بيتك. صلاحية المدير تُعيَّن من قاعدة البيانات.',
-      path: '/login',
+    effect(() => {
+      const copy = t();
+      this.seo.set({
+        title: copy.loginPage.title,
+        description: copy.loginPage.description,
+        path: '/login',
+      });
     });
   }
 
@@ -39,7 +46,7 @@ export class LoginPage {
   protected async submit(): Promise<void> {
     this.error.set('');
     if (!this.email().includes('@') || this.password().length < 6) {
-      this.error.set('أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف على الأقل.');
+      this.error.set(t().errors.loginValidation);
       return;
     }
     this.busy.set(true);

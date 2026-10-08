@@ -1,11 +1,13 @@
+import { numberLocale, t } from '../../locale/locale';
+
 const MAX_PRICE = 999_999_999;
 
 export function parsePrice(value: string): number {
   const digits = toWesternDigits(value).replace(/\D/g, '');
-  if (!digits) throw new Error('أدخل السعر بالجنيه.');
+  if (!digits) throw new Error(t().errors.priceRequired);
   const price = Number(digits);
   if (!Number.isSafeInteger(price) || price < 1 || price > MAX_PRICE) {
-    throw new Error('السعر يجب أن يكون رقماً من 1 إلى 999999999 جنيه.');
+    throw new Error(t().errors.priceRange);
   }
   return price;
 }
@@ -31,7 +33,7 @@ export function groupPriceInput(value: string, caret: number): { text: string; c
 }
 
 export function formatPrice(value: number): string {
-  return `${new Intl.NumberFormat('ar-EG').format(value)} جنيه`;
+  return `${new Intl.NumberFormat(numberLocale()).format(value)} ${t().currency}`;
 }
 
 function toWesternDigits(value: string): string {

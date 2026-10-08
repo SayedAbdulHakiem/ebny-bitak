@@ -1,11 +1,11 @@
 @if (loading()) {
-  <p class="muted">جارٍ فتح تفاصيل المنزل…</p>
+  <p class="muted">{{ text.detail.loading }}</p>
 } @else if (error()) {
   <p class="alert" role="alert">{{ error() }}</p>
 } @else if (missing()) {
   <section class="empty-panel">
-    <h1>هذا المنزل غير موجود</h1>
-    <a class="button" routerLink="/">العودة للبحث</a>
+    <h1>{{ text.detail.missingTitle }}</h1>
+    <a class="button" routerLink="/">{{ text.backToSearch }}</a>
   </section>
 } @else if (house(); as current) {
   <article class="detail">
@@ -16,7 +16,7 @@
           <div class="gallery-thumbs">
             @for (image of current.photos; track $index; let index = $index) {
               <button type="button" [class.active]="photoIndex() === index" (click)="selectPhoto(index)">
-                <img [src]="image" [alt]="'صورة ' + (index + 1) + ' لـ ' + current.name" />
+                <img [src]="image" [alt]="text.photoAlt(index + 1, current.name)" />
               </button>
             }
           </div>
@@ -31,14 +31,14 @@
     </div>
 
     <div class="detail-copy">
-      <p class="meta">المنطقة {{ current.region }} · القطاع {{ current.sector }} · منزل {{ current.houseNumber }}</p>
+      <p class="meta">{{ text.houseMeta(current.region, current.sector, current.houseNumber) }}</p>
       <h1>{{ current.name }}</h1>
       @if (current.price > 0) {
         <p class="price">{{ formatPrice(current.price) }}</p>
       }
       @if (isOwner(current)) {
         <p class="actions">
-          <a class="button secondary" [routerLink]="['/seller/houses', current.id, 'edit']">تعديل الإعلان</a>
+          <a class="button secondary" [routerLink]="['/seller/houses', current.id, 'edit']">{{ text.editListing }}</a>
         </p>
       }
       <p class="lead">{{ current.description }}</p>
@@ -47,30 +47,30 @@
         <strong>{{ current.sellerName }}</strong>
         <app-stars [rating]="current.sellerRating" />
       </div>
-      <p class="muted">نُشر {{ formatArabicDate(current.createdAt) }} · {{ current.viewCount }} زيارة منذ النشر</p>
+      <p class="muted">{{ text.publishedLine(formatArabicDate(current.createdAt), current.viewCount) }}</p>
     </div>
   </article>
 
   @if (youtubeId(current.youtubeUrl); as videoId) {
     <section class="panel">
-      <h2>فيديو المنزل</h2>
+      <h2>{{ text.detail.video }}</h2>
       <div class="video-frame">
         <iframe
           [src]="youtubeEmbed(videoId)"
-          title="فيديو المنزل على يوتيوب"
+          [title]="text.detail.videoTitle"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowfullscreen
         ></iframe>
       </div>
-      <p><a [href]="current.youtubeUrl" target="_blank" rel="noopener noreferrer">مشاهدة على يوتيوب</a></p>
+      <p><a [href]="current.youtubeUrl" target="_blank" rel="noopener noreferrer">{{ text.detail.watch }}</a></p>
     </section>
   }
 
   <section class="panel">
-    <h2>التواصل مع البائع</h2>
-    <p>يظهر رقم الهاتف بعد الضغط، ويُحسب هذا الضغط ضمن إحصائيات المنزل.</p>
+    <h2>{{ text.detail.contact }}</h2>
+    <p>{{ text.detail.contactBody }}</p>
     @if (!phoneVisible()) {
-      <button type="button" class="button" (click)="revealPhone()">إظهار رقم الهاتف</button>
+      <button type="button" class="button" (click)="revealPhone()">{{ text.detail.showPhone }}</button>
     } @else {
       <a class="phone-link" [href]="'tel:' + current.sellerPhone">{{ current.sellerPhone }}</a>
     }
@@ -81,24 +81,24 @@
 
   @if (isAdmin()) {
     <section class="panel">
-      <h2>النقرات حسب التاريخ</h2>
-      <p class="muted">التاريخ حسب توقيت جهازك. تشمل الأرقام نقرات فتح المنزل ونقرات إظهار الرقم.</p>
+      <h2>{{ text.detail.clicksByDate }}</h2>
+      <p class="muted">{{ text.detail.clicksHint }}</p>
       <app-date-range [(from)]="from" [(to)]="to" (apply)="applyStats()" />
       <div class="stat-grid">
         <article>
-          <span>نقرات هذا المنزل</span>
+          <span>{{ text.detail.houseClicks }}</span>
           <strong>{{ houseStats().views }}</strong>
         </article>
         <article>
-          <span>إجمالي نقرات منازل البائع</span>
+          <span>{{ text.detail.sellerHouseClicks }}</span>
           <strong>{{ sellerStats().views }}</strong>
         </article>
         <article>
-          <span>إظهار رقم هذا المنزل</span>
+          <span>{{ text.detail.housePhone }}</span>
           <strong>{{ houseStats().phoneReveals }}</strong>
         </article>
         <article>
-          <span>إظهار الرقم لكل منازل البائع</span>
+          <span>{{ text.detail.sellerPhone }}</span>
           <strong>{{ sellerStats().phoneReveals }}</strong>
         </article>
       </div>
@@ -107,10 +107,10 @@
 
   <section class="results-section">
     <div class="section-head">
-      <h2>منازل أخرى لهذا البائع</h2>
+      <h2>{{ text.detail.otherHouses }}</h2>
     </div>
     @if (related().length === 0) {
-      <p class="empty">لا توجد منازل أخرى معروضة لهذا البائع.</p>
+      <p class="empty">{{ text.detail.noOther }}</p>
     } @else {
       <div class="results">
         @for (item of related(); track item.id) {
