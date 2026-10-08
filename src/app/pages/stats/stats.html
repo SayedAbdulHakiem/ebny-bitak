@@ -1,0 +1,91 @@
+<section class="page-intro">
+  <p class="eyebrow">نشاط الزوار</p>
+  <h1>إحصائيات النقرات</h1>
+  <p>
+    نقرات فتح صفحة المنزل، ومجموع نقرات منازل كل بائع، ونقرات زر إظهار رقم الهاتف. اختر الفترة الزمنية، والتاريخ يُحسب
+    بتوقيت جهازك.
+  </p>
+</section>
+
+<section class="panel">
+  <app-date-range [(from)]="from" [(to)]="to" (apply)="reload()" />
+  @if (sellerRows().length) {
+    <label>
+      البائع
+      <select [value]="sellerFilter()" (change)="setSeller($event)">
+        <option value="">كل البائعين</option>
+        @for (seller of sellerRows(); track seller.sellerId) {
+          <option [value]="seller.sellerId">{{ seller.sellerName }}</option>
+        }
+      </select>
+    </label>
+  }
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  }
+  @if (loading()) {
+    <p class="muted">جارٍ جمع النقرات…</p>
+  }
+</section>
+
+<section class="panel">
+  <h2>البائعون</h2>
+  @if (!loading() && visibleSellers().length === 0) {
+    <p class="empty">لا توجد نقرات أو منازل في هذه الفترة.</p>
+  } @else if (!loading()) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>البائع</th>
+            <th>النوع</th>
+            <th>المنازل</th>
+            <th>نقرات المنازل</th>
+            <th>نقرات الهاتف</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (seller of visibleSellers(); track seller.sellerId) {
+            <tr>
+              <td>{{ seller.sellerName }}</td>
+              <td>{{ sellerTypeLabel(seller.sellerType) }}</td>
+              <td>{{ seller.houses }}</td>
+              <td>{{ seller.views }}</td>
+              <td>{{ seller.phoneReveals }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<section class="panel">
+  <h2>المنازل</h2>
+  @if (!loading() && visibleHouses().length) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>المنزل</th>
+            <th>الموقع</th>
+            <th>البائع</th>
+            <th>النقرات</th>
+            <th>الهاتف</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of visibleHouses(); track row.house.id) {
+            <tr>
+              <td>{{ row.house.name }}</td>
+              <td>منطقة {{ row.house.region }} · {{ row.house.sector }} · {{ row.house.houseNumber }}</td>
+              <td>{{ row.house.sellerName }}</td>
+              <td>{{ row.views }}</td>
+              <td>{{ row.phoneReveals }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

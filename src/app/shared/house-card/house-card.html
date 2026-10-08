@@ -1,0 +1,22 @@
+<a class="card" [routerLink]="['/houses', house().id]">
+  @if (house().photos[0]; as photo) {
+    <img class="thumb" [src]="photo" [alt]="house().name" />
+  } @else {
+    <div class="thumb thumb-empty" aria-hidden="true">
+      <svg viewBox="0 0 64 64" class="house-icon">
+        <path d="M8 30 32 12l24 18v22H40V38H24v14H8Z" />
+      </svg>
+    </div>
+  }
+  <div class="card-body">
+    <p class="meta">المنطقة {{ house().region }} · القطاع {{ house().sector }} · منزل {{ house().houseNumber }}</p>
+    <h2>{{ house().name }}</h2>
+    <p class="description">{{ house().description }}</p>
+    <div class="seller-row">
+      <span [class]="'tag tag-' + house().sellerType">{{ sellerTypeLabel(house().sellerType) }}</span>
+      <strong>{{ house().sellerName }}</strong>
+      <app-stars [rating]="house().sellerRating" />
+    </div>
+    <p class="views">{{ house().viewCount }} زيارة</p>
+  </div>
+</a>

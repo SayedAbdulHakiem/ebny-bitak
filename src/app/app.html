@@ -1,0 +1,57 @@
+<a class="skip-link" href="#content">تخطي إلى المحتوى</a>
+
+@if (!firebase.configured) {
+  <p class="banner" role="status">
+    أضف إعدادات مشروع Firebase في الملف <code>src/app/core/firebase-config.ts</code> ثم فعّل الدخول وFirestore وStorage.
+  </p>
+}
+
+<div class="app-shell">
+  <header class="site-header">
+    <a class="brand" routerLink="/" (click)="closeMenu()">
+      <img src="logo.png" alt="ابني بيتك — للبيع والشراء والموردين" width="320" height="427" />
+    </a>
+
+    <button class="menu-button" type="button" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()">
+      القائمة
+    </button>
+
+    <nav [class.open]="menuOpen()" aria-label="التنقل الرئيسي">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">البحث</a>
+      @if (auth.profile()?.role === 'admin') {
+        <a routerLink="/stats" routerLinkActive="active" (click)="closeMenu()">الإحصائيات</a>
+        <a routerLink="/admin/sellers" routerLinkActive="active" (click)="closeMenu()">البائعون</a>
+      }
+      @if (auth.profile()?.role === 'seller') {
+        <a routerLink="/seller/houses/new" routerLinkActive="active" (click)="closeMenu()">إضافة منزل</a>
+      }
+      @if (auth.profile(); as profile) {
+        <span class="who">{{ profile.displayName }} · {{ profile.role === 'admin' ? 'مدير' : 'بائع' }}</span>
+        <button type="button" class="button secondary" (click)="logout()">خروج</button>
+      } @else {
+        <a class="button" routerLink="/login" (click)="closeMenu()">دخول</a>
+      }
+    </nav>
+  </header>
+
+  <main id="content">
+    <router-outlet />
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <strong>ابني بيتك</strong>
+      <p>
+        منصة ebny-bitak للبحث عن المنازل والعقارات: ابني بيت حسب المنطقة من 1 إلى 7، والقطاع من أ إلى ي، ورقم المنزل.
+        قارن المالك والوسيط والشركة، واطلع على التقييم وعدد الزيارات قبل التواصل.
+      </p>
+    </div>
+    <div class="footer-links">
+      <a routerLink="/">بحث المنازل</a>
+      @if (auth.profile()?.role === 'admin') {
+        <a routerLink="/stats">إحصائيات النقرات</a>
+      }
+      <a routerLink="/login">دخول البائع أو المدير</a>
+    </div>
+  </footer>
+</div>

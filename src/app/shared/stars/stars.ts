@@ -1,0 +1,21 @@
+import { Component, computed, input } from '@angular/core';
+
+@Component({
+  selector: 'app-stars',
+  templateUrl: './stars.html',
+})
+export class Stars {
+  readonly rating = input(0);
+  protected readonly score = computed(() => Math.max(0, Math.min(5, this.rating())));
+  protected readonly label = computed(() => {
+    const value = new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 1 }).format(this.score());
+    return `التقييم ${value} من 5`;
+  });
+  protected readonly marks = [1, 2, 3, 4, 5];
+
+  protected state(mark: number): string {
+    if (this.score() >= mark) return 'star on';
+    if (this.score() + 0.5 >= mark) return 'star half';
+    return 'star';
+  }
+}

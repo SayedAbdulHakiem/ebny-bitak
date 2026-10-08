@@ -1,0 +1,128 @@
+<section class="hero">
+  <div class="hero-copy">
+    <h1 class="visually-hidden">ابني بيتك</h1>
+    <p class="eyebrow">ebny-bitak</p>
+    <p>
+      ابحث عن المنازل حسب المنطقة من 1 إلى 7، والقطاع من أ إلى ي، ورقم المنزل. شاهد وصف العقار والبائع وتقييمه، ثم
+      افتح التفاصيل للتواصل.
+    </p>
+  </div>
+
+  <form class="search-panel" (submit)="$event.preventDefault(); submit()">
+    <div class="filter-row">
+      <div class="field filter-dropdown">
+        <span id="region-label">المنطقة</span>
+        <button
+          type="button"
+          class="select-trigger"
+          aria-labelledby="region-label"
+          [attr.aria-expanded]="openMenu() === 'region'"
+          (click)="toggleMenu('region')"
+        >
+          <span>{{ regionLabel() }}</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </button>
+        @if (openMenu() === 'region') {
+          <div class="dropdown-panel" role="group" aria-label="اختيار المناطق">
+            @for (item of regions; track item) {
+              <label class="check-row">
+                <input type="checkbox" [checked]="isRegionSelected(item)" (change)="toggleRegion(item, $event)" />
+                <span>المنطقة {{ item }}</span>
+              </label>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="field filter-dropdown">
+        <span id="sector-label">القطاع</span>
+        <button
+          type="button"
+          class="select-trigger"
+          aria-labelledby="sector-label"
+          [attr.aria-expanded]="openMenu() === 'sector'"
+          (click)="toggleMenu('sector')"
+        >
+          <span>{{ sectorLabel() }}</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </button>
+        @if (openMenu() === 'sector') {
+          <div class="dropdown-panel" role="group" aria-label="اختيار القطاعات">
+            @for (item of sectors; track item) {
+              <label class="check-row">
+                <input type="checkbox" [checked]="isSectorSelected(item)" (change)="toggleSector(item, $event)" />
+                <span>القطاع {{ item }}</span>
+              </label>
+            }
+          </div>
+        }
+      </div>
+
+      <label class="field">
+        رقم المنزل
+        <input
+          [value]="houseNumber()"
+          (input)="setHouseNumber($event)"
+          inputmode="text"
+          maxlength="20"
+          placeholder="مثال: 15"
+          autocomplete="off"
+        />
+      </label>
+
+      <button class="button search-submit" type="submit" [disabled]="loading()">
+        {{ loading() ? 'جارٍ البحث…' : 'بحث' }}
+      </button>
+    </div>
+
+    @if (hasFilters()) {
+      <div class="filter-tags" aria-label="التصفيات المختارة">
+        @for (region of selectedRegions(); track region) {
+          <button type="button" class="filter-tag" (click)="removeRegion(region)">
+            المنطقة {{ region }}
+            <span aria-hidden="true">×</span>
+          </button>
+        }
+        @for (sector of selectedSectors(); track sector) {
+          <button type="button" class="filter-tag" (click)="removeSector(sector)">
+            القطاع {{ sector }}
+            <span aria-hidden="true">×</span>
+          </button>
+        }
+        @if (houseNumber().trim()) {
+          <button type="button" class="filter-tag" (click)="removeHouseNumber()">
+            منزل {{ houseNumber().trim() }}
+            <span aria-hidden="true">×</span>
+          </button>
+        }
+        <button type="button" class="filter-tag clear" (click)="clearFilters()">مسح الكل</button>
+      </div>
+    }
+  </form>
+</section>
+
+<section class="results-section">
+  <div class="section-head">
+    <h2>نتائج البحث</h2>
+    @if (!loading()) {
+      <p>{{ results().length }} منزل</p>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="alert" role="alert">{{ error() }}</p>
+  } @else if (loading()) {
+    <p class="muted">جارٍ تحميل المنازل…</p>
+  } @else if (results().length === 0 && searched()) {
+    <p class="empty">لا توجد منازل مطابقة. جرّب منطقة أو قطاعاً أو رقماً آخر.</p>
+  } @else {
+    <div class="results">
+      @for (house of results(); track house.id) {
+        <app-house-card [house]="house" />
+      }
+    </div>
+    @if (results().length >= 100) {
+      <p class="muted">تظهر أول 100 نتيجة. ضيّق البحث بالقطاع أو رقم المنزل.</p>
+    }
+  }
+</section>

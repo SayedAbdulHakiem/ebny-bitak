@@ -1,0 +1,97 @@
+@if (loading()) {
+  <p class="muted">جارٍ فتح تفاصيل المنزل…</p>
+} @else if (error()) {
+  <p class="alert" role="alert">{{ error() }}</p>
+} @else if (missing()) {
+  <section class="empty-panel">
+    <h1>هذا المنزل غير موجود</h1>
+    <a class="button" routerLink="/">العودة للبحث</a>
+  </section>
+} @else if (house(); as current) {
+  <article class="detail">
+    <div class="gallery">
+      @if (current.photos[photoIndex()]; as photo) {
+        <img class="gallery-main" [src]="photo" [alt]="current.name" />
+        @if (current.photos.length > 1) {
+          <div class="gallery-thumbs">
+            @for (image of current.photos; track $index; let index = $index) {
+              <button type="button" [class.active]="photoIndex() === index" (click)="selectPhoto(index)">
+                <img [src]="image" [alt]="'صورة ' + (index + 1) + ' لـ ' + current.name" />
+              </button>
+            }
+          </div>
+        }
+      } @else {
+        <div class="thumb thumb-empty gallery-main" aria-hidden="true">
+          <svg viewBox="0 0 64 64" class="house-icon">
+            <path d="M8 30 32 12l24 18v22H40V38H24v14H8Z" />
+          </svg>
+        </div>
+      }
+    </div>
+
+    <div class="detail-copy">
+      <p class="meta">المنطقة {{ current.region }} · القطاع {{ current.sector }} · منزل {{ current.houseNumber }}</p>
+      <h1>{{ current.name }}</h1>
+      <p class="lead">{{ current.description }}</p>
+      <div class="seller-row">
+        <span [class]="'tag tag-' + current.sellerType">{{ sellerTypeLabel(current.sellerType) }}</span>
+        <strong>{{ current.sellerName }}</strong>
+        <app-stars [rating]="current.sellerRating" />
+      </div>
+      <p class="muted">نُشر {{ formatArabicDate(current.createdAt) }} · {{ current.viewCount }} زيارة منذ النشر</p>
+    </div>
+  </article>
+
+  <section class="panel">
+    <h2>التواصل مع البائع</h2>
+    <p>يظهر رقم الهاتف بعد الضغط، ويُحسب هذا الضغط ضمن إحصائيات المنزل.</p>
+    @if (!phoneVisible()) {
+      <button type="button" class="button" (click)="revealPhone()">إظهار رقم الهاتف</button>
+    } @else {
+      <a class="phone-link" [href]="'tel:' + current.sellerPhone">{{ current.sellerPhone }}</a>
+    }
+    @if (statsError()) {
+      <p class="alert" role="alert">{{ statsError() }}</p>
+    }
+  </section>
+
+  <section class="panel">
+    <h2>النقرات حسب التاريخ</h2>
+    <p class="muted">التاريخ حسب توقيت جهازك. تشمل الأرقام نقرات فتح المنزل ونقرات إظهار الرقم.</p>
+    <app-date-range [(from)]="from" [(to)]="to" (apply)="applyStats()" />
+    <div class="stat-grid">
+      <article>
+        <span>نقرات هذا المنزل</span>
+        <strong>{{ houseStats().views }}</strong>
+      </article>
+      <article>
+        <span>إجمالي نقرات منازل البائع</span>
+        <strong>{{ sellerStats().views }}</strong>
+      </article>
+      <article>
+        <span>إظهار رقم هذا المنزل</span>
+        <strong>{{ houseStats().phoneReveals }}</strong>
+      </article>
+      <article>
+        <span>إظهار الرقم لكل منازل البائع</span>
+        <strong>{{ sellerStats().phoneReveals }}</strong>
+      </article>
+    </div>
+  </section>
+
+  <section class="results-section">
+    <div class="section-head">
+      <h2>منازل أخرى لهذا البائع</h2>
+    </div>
+    @if (related().length === 0) {
+      <p class="empty">لا توجد منازل أخرى معروضة لهذا البائع.</p>
+    } @else {
+      <div class="results">
+        @for (item of related(); track item.id) {
+          <app-house-card [house]="item" />
+        }
+      </div>
+    }
+  </section>
+}

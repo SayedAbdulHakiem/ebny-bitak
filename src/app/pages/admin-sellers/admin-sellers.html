@@ -1,0 +1,94 @@
+<section class="page-intro">
+  <p class="eyebrow">حساب المدير</p>
+  <h1>البائعون</h1>
+  <p>إضافة حساب بائع جديد أو تعديل اسمه وهاتفه ونوعه وتقييمه. صلاحية المدير نفسه لا تُنشأ من هنا، بل من وثيقة المستخدم في قاعدة البيانات.</p>
+</section>
+
+<div class="split">
+  <form class="panel form-grid" (submit)="$event.preventDefault(); submit()">
+    <h2 class="span-2">{{ editingId() ? 'تعديل بائع' : 'بائع جديد' }}</h2>
+    <label>
+      الاسم
+      <input [value]="displayName()" (input)="setName($event)" required />
+    </label>
+    <label>
+      البريد الإلكتروني
+      <input type="email" [value]="email()" (input)="setEmail($event)" [disabled]="!!editingId()" required />
+    </label>
+    @if (!editingId()) {
+      <label>
+        كلمة المرور
+        <input type="password" [value]="password()" (input)="setPassword($event)" autocomplete="new-password" required />
+      </label>
+    }
+    <label>
+      الهاتف
+      <input [value]="phone()" (input)="setPhone($event)" inputmode="tel" required />
+    </label>
+    <label>
+      نوع البائع
+      <select [value]="sellerType()" (change)="setType($event)">
+        @for (type of sellerTypes; track type) {
+          <option [value]="type">{{ sellerTypeLabel(type) }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      التقييم من 5
+      <input type="number" min="0" max="5" step="0.5" [value]="rating()" (input)="setRating($event)" required />
+    </label>
+
+    @if (error()) {
+      <p class="alert span-2" role="alert">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p class="success span-2" role="status">{{ success() }}</p>
+    }
+
+    <div class="actions span-2">
+      <button class="button" type="submit" [disabled]="busy()">
+        {{ busy() ? 'جارٍ الحفظ…' : editingId() ? 'حفظ التعديل' : 'إضافة البائع' }}
+      </button>
+      @if (editingId()) {
+        <button class="button secondary" type="button" (click)="cancelEdit()">إلغاء</button>
+      }
+    </div>
+  </form>
+
+  <section class="panel">
+    <h2>البائعون الحاليون</h2>
+    @if (loading()) {
+      <p class="muted">جارٍ التحميل…</p>
+    } @else if (sellers().length === 0) {
+      <p class="empty">لا يوجد بائعون بعد.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>النوع</th>
+              <th>التقييم</th>
+              <th>الهاتف</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (seller of sellers(); track seller.uid) {
+              <tr>
+                <td>
+                  <strong>{{ seller.displayName }}</strong>
+                  <span class="muted">{{ seller.email }}</span>
+                </td>
+                <td><span [class]="'tag tag-' + (seller.sellerType || 'owner')">{{ sellerTypeLabel(seller.sellerType) }}</span></td>
+                <td>{{ seller.rating }}</td>
+                <td dir="ltr">{{ seller.phone }}</td>
+                <td><button type="button" class="button secondary" (click)="edit(seller)">تعديل</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

@@ -1,0 +1,152 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/ebny_bitak/root/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn() && userData().role == 'admin';
+    }
+
+    function isSeller() {
+      return signedIn() && userData().role == 'seller';
+    }
+
+    function sellerProfile() {
+      return userData();
+    }
+
+    function expectedKey() {
+      return string(request.resource.data.region)
+        + '_'
+        + request.resource.data.sector
+        + '_'
+        + request.resource.data.houseNumber;
+    }
+
+    function validHouseCreate(houseId) {
+      return isSeller()
+        && houseId == expectedKey()
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.sellerName == sellerProfile().displayName
+        && request.resource.data.sellerPhone == sellerProfile().phone
+        && request.resource.data.sellerType == sellerProfile().sellerType
+        && request.resource.data.sellerRating == sellerProfile().rating
+        && request.resource.data.region is int
+        && request.resource.data.region >= 1
+        && request.resource.data.region <= 7
+        && request.resource.data.sector in [
+          'أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'
+        ]
+        && request.resource.data.houseNumber is string
+        && request.resource.data.houseNumber.size() > 0
+        && request.resource.data.houseNumber.size() <= 20
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 10
+        && request.resource.data.description.size() <= 600
+        && request.resource.data.photos is list
+        && request.resource.data.photos.size() <= 3
+        && request.resource.data.viewCount == 0
+        && request.resource.data.phoneRevealCount == 0
+        && request.resource.data.locationKey == houseId
+        && request.resource.data.createdAt == request.time;
+    }
+
+    function viewIncrement() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
+        && request.resource.data.viewCount == resource.data.viewCount + 1;
+    }
+
+    function phoneIncrement() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phoneRevealCount'])
+        && request.resource.data.phoneRevealCount == resource.data.phoneRevealCount + 1;
+    }
+
+    function validDailyCreate() {
+      return request.resource.data.date == dayId()
+        && request.resource.data.views is int
+        && request.resource.data.phoneReveals is int
+        && request.resource.data.views >= 0
+        && request.resource.data.phoneReveals >= 0
+        && request.resource.data.views + request.resource.data.phoneReveals == 1;
+    }
+
+    function validDailyUpdate() {
+      let viewsDelta = request.resource.data.views - resource.data.views;
+      let phoneDelta = request.resource.data.phoneReveals - resource.data.phoneReveals;
+      return request.resource.data.date == resource.data.date
+        && viewsDelta >= 0
+        && phoneDelta >= 0
+        && viewsDelta + phoneDelta == 1
+        && (viewsDelta == 1 || phoneDelta == 1);
+    }
+
+    function dayId() {
+      return request.resource.data.date;
+    }
+
+    match /ebny_bitak/root {
+      match /users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if isAdmin()
+        && request.resource.data.role == 'seller'
+        && request.resource.data.displayName is string
+        && request.resource.data.email is string
+        && request.resource.data.phone is string
+        && request.resource.data.sellerType in ['owner', 'agent', 'company']
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 0
+        && request.resource.data.rating <= 5;
+      allow update: if isAdmin() && request.resource.data.role == resource.data.role;
+      allow delete: if false;
+    }
+
+    match /houses/{houseId} {
+      allow read: if true;
+      allow create: if validHouseCreate(houseId);
+      allow update: if isAdmin() || viewIncrement() || phoneIncrement();
+      allow delete: if isAdmin();
+    }
+
+    match /houseStats/{houseId}/daily/{day} {
+      allow read: if true;
+      allow create: if exists(/databases/$(database)/documents/ebny_bitak/root/houses/$(houseId))
+        && request.resource.data.date == day
+        && request.resource.data.houseId == houseId
+        && request.resource.data.scope == 'house'
+        && validDailyCreate();
+      allow update: if request.resource.data.date == day
+        && request.resource.data.houseId == resource.data.houseId
+        && request.resource.data.scope == 'house'
+        && validDailyUpdate();
+      allow delete: if isAdmin();
+    }
+
+    match /sellerStats/{sellerId}/daily/{day} {
+      function sourceOwned() {
+        return get(/databases/$(database)/documents/ebny_bitak/root/houses/$(request.resource.data.sourceHouseId)).data.sellerId == sellerId;
+      }
+      allow read: if true;
+      allow create: if request.resource.data.date == day
+        && request.resource.data.sellerId == sellerId
+        && request.resource.data.scope == 'seller'
+        && sourceOwned()
+        && validDailyCreate();
+      allow update: if request.resource.data.date == day
+        && request.resource.data.sellerId == sellerId
+        && request.resource.data.scope == 'seller'
+        && sourceOwned()
+        && validDailyUpdate();
+      allow delete: if isAdmin();
+      }
+    }
+  }
+}

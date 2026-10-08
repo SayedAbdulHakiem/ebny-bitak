@@ -1,0 +1,23 @@
+<section class="auth-layout">
+  <form class="panel auth-card" (submit)="$event.preventDefault(); submit()">
+    <p class="eyebrow">حسابات العمل</p>
+    <h1>دخول المدير أو البائع</h1>
+    <p class="muted">الزائر يبحث بدون حساب. صلاحية المدير تُضاف في قاعدة البيانات، والمدير هو من ينشئ حسابات البائعين.</p>
+
+    <label>
+      البريد الإلكتروني
+      <input type="email" [value]="email()" (input)="setEmail($event)" autocomplete="username" required />
+    </label>
+    <label>
+      كلمة المرور
+      <input type="password" [value]="password()" (input)="setPassword($event)" autocomplete="current-password" required />
+    </label>
+
+    @if (error()) {
+      <p class="alert" role="alert">{{ error() }}</p>
+    }
+
+    <button class="button" type="submit" [disabled]="busy()">{{ busy() ? 'جارٍ الدخول…' : 'دخول' }}</button>
+    <a routerLink="/">العودة للبحث</a>
+  </form>
+</section>

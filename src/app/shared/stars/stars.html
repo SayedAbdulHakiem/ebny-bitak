@@ -1,0 +1,6 @@
+<span class="stars" [attr.aria-label]="label()">
+  @for (mark of marks; track mark) {
+    <span [class]="state(mark)" aria-hidden="true">★</span>
+  }
+  <span class="rating-number">{{ score() }}</span>
+</span>

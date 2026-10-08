@@ -1,0 +1,11 @@
+<form class="date-range" (submit)="submit($event)">
+  <label>
+    من تاريخ
+    <input type="date" [value]="from()" (input)="setFrom($event)" required />
+  </label>
+  <label>
+    إلى تاريخ
+    <input type="date" [value]="to()" (input)="setTo($event)" required />
+  </label>
+  <button type="submit" class="button secondary">عرض الإحصائية</button>
+</form>
